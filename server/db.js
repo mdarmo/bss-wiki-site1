@@ -1,11 +1,11 @@
 const mysql = require('mysql2');
 
 const pool = mysql.createPool({
-    host: '127.0.0.1',
-    user: 'root',
-    password: 'root', // Update with your MySQL password if you have one
+    host: 'db-mysql-bsi-wiki-site1-do-user-24566465-0.j.db.ondigitalocean.com',
+    user: 'doadmin',
+    password: process.env.DB_PASSWORD, // Update with your MySQL password if you have one
     database: 'BSI',
-    port: 8889, // Explicitly set the port
+    port: 25060, // Explicitly set the port
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
