@@ -39,7 +39,8 @@ const WikiPage = () => {
     const [openSections, setOpenSections] = useState({
         communities: false,
         politicians: false,
-        profiteers: false,
+        corporations: false,
+        profiteers: false, // Add profiteers section
         resources: false
     });
 
@@ -47,10 +48,12 @@ const WikiPage = () => {
     const [communities, setCommunities] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [politicians, setPoliticians] = useState([]);
+    const [people, setPeople] = useState([]); // Add people state
     const [loading, setLoading] = useState({
         communities: false,
-        profiteers: false,
-        politicians: false
+        corporations: false,
+        politicians: false,
+        profiteers: false // Add profiteers loading state
     });
     const [error, setError] = useState(null);
 
@@ -89,7 +92,7 @@ const WikiPage = () => {
     // Fetch companies
     const fetchCompanies = async () => {
         if (companies.length > 0) return;
-        setLoading(prev => ({ ...prev, profiteers: true }));
+        setLoading(prev => ({ ...prev, corporations: true }));
         setError(null);
         try {
             const data = await api.getAllCompanies();
@@ -99,7 +102,7 @@ const WikiPage = () => {
             console.error('Failed to load companies:', err);
             setError('Failed to load companies: ' + err.message);
         }
-        setLoading(prev => ({ ...prev, profiteers: false }));
+        setLoading(prev => ({ ...prev, corporations: false }));
     };
 
     // Fetch politicians
@@ -116,6 +119,22 @@ const WikiPage = () => {
             setError('Failed to load politicians: ' + err.message);
         }
         setLoading(prev => ({ ...prev, politicians: false }));
+    };
+
+    // Add fetch people function
+    const fetchPeople = async () => {
+        if (people.length > 0) return;
+        setLoading(prev => ({ ...prev, profiteers: true }));
+        setError(null);
+        try {
+            const data = await api.getAllPeople();
+            console.log('People data:', data);
+            setPeople(data);
+        } catch (err) {
+            console.error('Failed to load people:', err);
+            setError('Failed to load people: ' + err.message);
+        }
+        setLoading(prev => ({ ...prev, profiteers: false }));
     };
 
     // Fetch person details
@@ -148,8 +167,9 @@ const WikiPage = () => {
         // Fetch data when opening a section
         if (newState) {
             if (section === 'communities') fetchCommunities();
-            if (section === 'profiteers') fetchCompanies();
+            if (section === 'corporations') fetchCompanies();
             if (section === 'politicians') fetchPoliticians();
+            if (section === 'profiteers') fetchPeople(); // Add profiteers fetching
         }
     };
 
@@ -170,6 +190,10 @@ const WikiPage = () => {
             } else if (type === 'politician') {
                 const detailed = await api.getPoliticianById(item.id);
                 console.log('Politician detail:', detailed);
+                setSelectedItem(detailed);
+            } else if (type === 'person') {
+                const detailed = await api.getPersonById(item.id);
+                console.log('Person detail:', detailed);
                 setSelectedItem(detailed);
             }
         } catch (err) {
@@ -195,7 +219,24 @@ const WikiPage = () => {
     };
 
     const renderCommunityDetail = (community) => {
-        const politicians = parseJSON(community.major_politicians);
+        const communityPoliticians = parseJSON(community.major_politicians);
+        
+        const handlePoliticianClick = async (politicianName) => {
+            // Ensure politicians are loaded from state
+            if (politicians.length === 0) {
+                await fetchPoliticians();
+            }
+            
+            // Find the politician by name from the state and display their details
+            setTimeout(async () => {
+                const politician = politicians.find(p => p.name === politicianName);
+                if (politician) {
+                    await handleItemClick('politician', politician);
+                } else {
+                    console.error('Politician not found:', politicianName);
+                }
+            }, 100);
+        };
         
         return (
             <Box>
@@ -252,10 +293,43 @@ const WikiPage = () => {
                                 Major Politicians
                             </Typography>
                             <List>
-                                {politicians.map((pol, index) => (
-                                    <ListItem key={index} divider>
+                                {communityPoliticians.map((pol, index) => (
+                                    <ListItem 
+                                        key={index} 
+                                        divider
+                                        sx={{
+                                            '&:hover': {
+                                                backgroundColor: 'action.hover'
+                                            }
+                                        }}
+                                    >
                                         <ListItemText
-                                            primary={pol.politician}
+                                            primary={
+                                                <MuiLink
+                                                    component="button"
+                                                    variant="body1"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handlePoliticianClick(pol.politician);
+                                                    }}
+                                                    sx={{
+                                                        cursor: 'pointer',
+                                                        textDecoration: 'none',
+                                                        textAlign: 'left',
+                                                        color: 'primary.main',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        padding: 0,
+                                                        font: 'inherit',
+                                                        '&:hover': {
+                                                            textDecoration: 'underline'
+                                                        }
+                                                    }}
+                                                >
+                                                    {pol.politician}
+                                                </MuiLink>
+                                            }
                                             secondary={pol.party}
                                         />
                                         <Chip 
@@ -535,6 +609,151 @@ const WikiPage = () => {
         );
     };
 
+    const renderPersonDetail = (person) => {
+        const affiliations = parseJSON(person.affiliations);
+        const connections = parseJSON(person.connections);
+        
+        return (
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PeopleIcon color="primary" />
+                        {person.name}
+                    </Typography>
+                    <IconButton 
+                        onClick={handleCloseDetails}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&:hover': { color: 'error.main' }
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Avatar
+                            src={`/images/people/${person.image}`}
+                            alt={person.name}
+                            sx={{ 
+                                width: 200, 
+                                height: 200,
+                                border: '3px solid',
+                                borderColor: 'primary.main'
+                            }}
+                        />
+                    </Grid>
+                    
+                    <Grid item xs={12} md={8}>
+                        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Role
+                            </Typography>
+                            <Typography variant="body1" fontWeight="medium">
+                                {person.role}
+                            </Typography>
+                        </Paper>
+
+                        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Company
+                            </Typography>
+                            <Typography variant="body1">
+                                {person.company_name ? (
+                                    <MuiLink
+                                        component="button"
+                                        variant="body1"
+                                        onClick={async () => {
+                                            // Find company by name
+                                            if (companies.length === 0) {
+                                                await fetchCompanies();
+                                            }
+                                            const company = companies.find(c => c.company_name === person.company_name);
+                                            if (company) {
+                                                await handleItemClick('company', company);
+                                            }
+                                        }}
+                                        sx={{
+                                            cursor: 'pointer',
+                                            textDecoration: 'none',
+                                            '&:hover': {
+                                                textDecoration: 'underline'
+                                            }
+                                        }}
+                                    >
+                                        {person.company_name}
+                                    </MuiLink>
+                                ) : 'N/A'}
+                            </Typography>
+                        </Paper>
+
+                        {affiliations.length > 0 && (
+                            <Paper elevation={1} sx={{ p: 2 }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Affiliations
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                    {affiliations.map((affiliation, index) => (
+                                        <Chip 
+                                            key={index} 
+                                            label={affiliation} 
+                                            size="small"
+                                            variant="outlined"
+                                        />
+                                    ))}
+                                </Box>
+                            </Paper>
+                        )}
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Paper elevation={1} sx={{ p: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Biography
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                                {person.short_bio}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+
+                    {connections.length > 0 && (
+                        <Grid item xs={12}>
+                            <Paper elevation={1} sx={{ p: 2 }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Notable Connections
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                    {connections.map((connection, index) => (
+                                        <Chip 
+                                            key={index} 
+                                            label={connection}
+                                            color="primary"
+                                            size="small"
+                                            onClick={async () => {
+                                                // Find person by name
+                                                if (people.length === 0) {
+                                                    await fetchPeople();
+                                                }
+                                                const connectedPerson = people.find(p => p.name === connection);
+                                                if (connectedPerson) {
+                                                    await handleItemClick('person', connectedPerson);
+                                                }
+                                            }}
+                                            sx={{ cursor: 'pointer' }}
+                                        />
+                                    ))}
+                                </Box>
+                            </Paper>
+                        </Grid>
+                    )}
+                </Grid>
+            </Box>
+        );
+    };
+
     const renderPersonDialog = () => {
         const affiliations = selectedPerson ? parseJSON(selectedPerson.affiliations) : [];
         const connections = selectedPerson ? parseJSON(selectedPerson.connections) : [];
@@ -683,6 +902,8 @@ const WikiPage = () => {
                 return renderCompanyDetail(selectedItem);
             case 'politician':
                 return renderPoliticianDetail(selectedItem);
+            case 'person':
+                return renderPersonDetail(selectedItem); // Add person rendering
             default:
                 return null;
         }
@@ -703,7 +924,7 @@ const WikiPage = () => {
                         handleItemClick('community', community);
                     } else if (selectedType === 'company') {
                         await fetchCompanies();
-                        setOpenSections(prev => ({ ...prev, profiteers: true }));
+                        setOpenSections(prev => ({ ...prev, corporations: true }));
                         const company = await api.getCompanyById(selectedId);
                         handleItemClick('company', company);
                     } else if (selectedType === 'politician') {
@@ -712,9 +933,10 @@ const WikiPage = () => {
                         const politician = await api.getPoliticianById(selectedId);
                         handleItemClick('politician', politician);
                     } else if (selectedType === 'person') {
-                        // For people, we need to find their company first
+                        await fetchPeople();
+                        setOpenSections(prev => ({ ...prev, profiteers: true }));
                         const person = await api.getPersonById(selectedId);
-                        handlePersonClick(person.name);
+                        handleItemClick('person', person);
                     }
                 } catch (err) {
                     console.error('Failed to load entity from navigation:', err);
@@ -736,14 +958,17 @@ const WikiPage = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
-                    {/* Left Navigation Column */}
-                    <Grid item xs={12} md={3}>
+                    {/* Left Navigation Column - increased from md={3} to md={3.45} (15% increase) */}
+                    <Grid item xs={12} md={3.45}>
                         <Paper elevation={2} sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}>
                             <List component="nav">
                                 {/* Communities */}
                                 <ListItemButton onClick={() => handleSectionClick('communities')}>
                                     <LocationOnIcon sx={{ mr: 2 }} color="primary" />
-                                    <ListItemText primary="Communities" />
+                                    <ListItemText 
+                                        primary="Communities" 
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }} // 15% increase from default 0.9rem
+                                    />
                                     {openSections.communities ? <ExpandLess /> : <ExpandMore />}
                                 </ListItemButton>
                                 <Collapse in={openSections.communities} timeout="auto" unmountOnExit>
@@ -760,7 +985,10 @@ const WikiPage = () => {
                                                     onClick={() => handleItemClick('community', community)}
                                                     selected={selectedItem?.id === community.id && selectedType === 'community'}
                                                 >
-                                                    <ListItemText primary={community.name} />
+                                                    <ListItemText 
+                                                        primary={community.name}
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }} // 15% increase from 0.9rem
+                                                    />
                                                 </ListItemButton>
                                             ))
                                         )}
@@ -772,7 +1000,10 @@ const WikiPage = () => {
                                 {/* Politicians */}
                                 <ListItemButton onClick={() => handleSectionClick('politicians')}>
                                     <PeopleIcon sx={{ mr: 2 }} color="primary" />
-                                    <ListItemText primary="Politicians" />
+                                    <ListItemText 
+                                        primary="Politicians"
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                    />
                                     {openSections.politicians ? <ExpandLess /> : <ExpandMore />}
                                 </ListItemButton>
                                 <Collapse in={openSections.politicians} timeout="auto" unmountOnExit>
@@ -791,7 +1022,7 @@ const WikiPage = () => {
                                                 >
                                                     <ListItemText 
                                                         primary={politician.name}
-                                                        primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
                                                     />
                                                 </ListItemButton>
                                             ))
@@ -801,15 +1032,18 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Profiteers */}
-                                <ListItemButton onClick={() => handleSectionClick('profiteers')}>
+                                {/* Corporations */}
+                                <ListItemButton onClick={() => handleSectionClick('corporations')}>
                                     <BusinessIcon sx={{ mr: 2 }} color="primary" />
-                                    <ListItemText primary="Profiteers" />
-                                    {openSections.profiteers ? <ExpandLess /> : <ExpandMore />}
+                                    <ListItemText 
+                                        primary="Corporations"
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                    />
+                                    {openSections.corporations ? <ExpandLess /> : <ExpandMore />}
                                 </ListItemButton>
-                                <Collapse in={openSections.profiteers} timeout="auto" unmountOnExit>
+                                <Collapse in={openSections.corporations} timeout="auto" unmountOnExit>
                                     <List component="div" disablePadding>
-                                        {loading.profiteers ? (
+                                        {loading.corporations ? (
                                             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                                                 <CircularProgress size={24} />
                                             </Box>
@@ -823,7 +1057,42 @@ const WikiPage = () => {
                                                 >
                                                     <ListItemText 
                                                         primary={company.company_name}
-                                                        primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                                    />
+                                                </ListItemButton>
+                                            ))
+                                        )}
+                                    </List>
+                                </Collapse>
+
+                                <Divider />
+
+                                {/* Profiteers */}
+                                <ListItemButton onClick={() => handleSectionClick('profiteers')}>
+                                    <PeopleIcon sx={{ mr: 2 }} color="primary" />
+                                    <ListItemText 
+                                        primary="Profiteers"
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                    />
+                                    {openSections.profiteers ? <ExpandLess /> : <ExpandMore />}
+                                </ListItemButton>
+                                <Collapse in={openSections.profiteers} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        {loading.profiteers ? (
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                                <CircularProgress size={24} />
+                                            </Box>
+                                        ) : (
+                                            people.map((person) => (
+                                                <ListItemButton
+                                                    key={person.id}
+                                                    sx={{ pl: 4 }}
+                                                    onClick={() => handleItemClick('person', person)}
+                                                    selected={selectedItem?.id === person.id && selectedType === 'person'}
+                                                >
+                                                    <ListItemText 
+                                                        primary={person.name}
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
                                                     />
                                                 </ListItemButton>
                                             ))
@@ -836,7 +1105,10 @@ const WikiPage = () => {
                                 {/* Resources */}
                                 <ListItemButton onClick={() => handleSectionClick('resources')}>
                                     <LinkIcon sx={{ mr: 2 }} color="primary" />
-                                    <ListItemText primary="Resources" />
+                                    <ListItemText 
+                                        primary="Resources"
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                    />
                                     {openSections.resources ? <ExpandLess /> : <ExpandMore />}
                                 </ListItemButton>
                                 <Collapse in={openSections.resources} timeout="auto" unmountOnExit>
@@ -852,7 +1124,7 @@ const WikiPage = () => {
                                             >
                                                 <ListItemText 
                                                     primary={resource.name}
-                                                    primaryTypographyProps={{ fontSize: '0.9rem' }}
+                                                    primaryTypographyProps={{ fontSize: '1.035rem' }}
                                                 />
                                             </ListItemButton>
                                         ))}
@@ -862,8 +1134,8 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Middle Content Column */}
-                    <Grid item xs={12} md={9}>
+                    {/* Middle Content Column - decreased from md={9} to md={8.55} to compensate */}
+                    <Grid item xs={12} md={8.55}>
                         <Paper elevation={2} sx={{ p: 4, minHeight: '70vh' }}>
                             {renderContent()}
                         </Paper>

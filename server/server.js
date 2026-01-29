@@ -6,10 +6,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Update CORS configuration - disable credentials to fix cookie issues
+// Update CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
-    credentials: false, // Changed from true to false - this fixes the cookie error
+    origin: process.env.FRONTEND_URL || 'https://your-app-name.ondigitalocean.app',
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -38,17 +38,10 @@ app.use('/api/people', peopleRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        message: 'Server is running',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
-    });
+    res.json({ status: 'OK', message: 'Server is running' });
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🌐 CORS origin: ${process.env.FRONTEND_URL || '*'}`);
+    console.log(`Server running on port ${PORT}`);
 });

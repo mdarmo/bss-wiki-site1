@@ -1,44 +1,14 @@
-import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Use environment variable or fallback to relative path
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    withCredentials: false // Make sure this is false
-});
-
-// Add request interceptor for debugging
-api.interceptors.request.use(
-    (config) => {
-        console.log('API Request:', config.method.toUpperCase(), config.url);
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
-
-// Add response interceptor for error handling
-api.interceptors.response.use(
-    (response) => {
-        return response;
-    },
-    (error) => {
-        console.error('API Error:', error.response?.status, error.message);
-        return Promise.reject(error);
-    }
-);
-
-const apiMethods = {
+const api = {
     // Companies endpoints
     getAllCompanies: async () => {
         try {
-            const response = await api.get('/companies');
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/companies`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getAllCompanies:', error);
             throw error;
@@ -47,8 +17,11 @@ const apiMethods = {
 
     getCompanyById: async (id) => {
         try {
-            const response = await api.get(`/companies/${id}`);
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/companies/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getCompanyById:', error);
             throw error;
@@ -58,8 +31,11 @@ const apiMethods = {
     // Communities endpoints
     getAllCommunities: async () => {
         try {
-            const response = await api.get('/communities');
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/communities`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getAllCommunities:', error);
             throw error;
@@ -68,8 +44,11 @@ const apiMethods = {
 
     getCommunityById: async (id) => {
         try {
-            const response = await api.get(`/communities/${id}`);
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/communities/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getCommunityById:', error);
             throw error;
@@ -79,8 +58,11 @@ const apiMethods = {
     // Politicians endpoints
     getAllPoliticians: async () => {
         try {
-            const response = await api.get('/politicians');
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/politicians`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getAllPoliticians:', error);
             throw error;
@@ -89,8 +71,11 @@ const apiMethods = {
 
     getPoliticianById: async (id) => {
         try {
-            const response = await api.get(`/politicians/${id}`);
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/politicians/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getPoliticianById:', error);
             throw error;
@@ -100,8 +85,11 @@ const apiMethods = {
     // People endpoints
     getAllPeople: async () => {
         try {
-            const response = await api.get('/people');
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/people`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getAllPeople:', error);
             throw error;
@@ -110,8 +98,11 @@ const apiMethods = {
 
     getPersonByName: async (name) => {
         try {
-            const response = await api.get(`/people/name/${encodeURIComponent(name)}`);
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/people/name/${encodeURIComponent(name)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getPersonByName:', error);
             throw error;
@@ -120,8 +111,11 @@ const apiMethods = {
 
     getPersonById: async (id) => {
         try {
-            const response = await api.get(`/people/${id}`);
-            return response.data;
+            const response = await fetch(`${API_BASE_URL}/people/${id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
         } catch (error) {
             console.error('API Error - getPersonById:', error);
             throw error;
@@ -129,4 +123,4 @@ const apiMethods = {
     },
 };
 
-export default { ...api, ...apiMethods };
+export default api;

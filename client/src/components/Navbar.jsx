@@ -4,18 +4,18 @@ import { Link } from 'react-router-dom';
 
 const Navbar = () => {
     return (
-        <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 167, 28, 0.75)' }}>
+        <AppBar position="static" sx={{ backgroundColor: '#0D1E20' }}>
             <Toolbar sx={{ justifyContent: 'space-between' }}>
                 <Button 
-                    color="inherit" 
                     component={Link} 
                     to="/"
                     sx={{ 
                         fontSize: '1.25rem',
                         fontWeight: 'bold',
                         textTransform: 'none',
+                        color: '#F5C06A',
                         '&:hover': { 
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+                            backgroundColor: 'rgba(245, 192, 106, 0.1)' 
                         }
                     }}
                 >
@@ -23,45 +23,45 @@ const Navbar = () => {
                 </Button>
                 <Box sx={{ mr: '15%' }}>
                     <Button 
-                        color="inherit" 
                         component={Link} 
                         to="/"
                         sx={{ 
-                            fontSize: '1.5rem',
+                            fontSize: '1.3rem',
                             py: 2,
                             px: 4,
+                            color: '#F5C06A',
                             '&:hover': { 
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+                                backgroundColor: 'rgba(245, 192, 106, 0.1)' 
                             }
                         }}
                     >
                         Home
                     </Button>
                     <Button 
-                        color="inherit" 
                         component={Link} 
                         to="/wiki"
                         sx={{ 
-                            fontSize: '1.5rem',
+                            fontSize: '1.3rem',
                             py: 2,
                             px: 4,
+                            color: '#F5C06A',
                             '&:hover': { 
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+                                backgroundColor: 'rgba(245, 192, 106, 0.1)' 
                             }
                         }}
                     >
                         Wiki
                     </Button>
                     <Button 
-                        color="inherit" 
                         component={Link} 
                         to="/map"
                         sx={{ 
-                            fontSize: '1.5rem',
+                            fontSize: '1.3rem',
                             py: 2,
                             px: 4,
+                            color: '#F5C06A',
                             '&:hover': { 
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)' 
+                                backgroundColor: 'rgba(245, 192, 106, 0.1)' 
                             }
                         }}
                     >
