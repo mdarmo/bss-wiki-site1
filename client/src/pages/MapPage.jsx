@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import api from '../services/api';
+import Footer from '../components/Footer';
 
 // Create custom orange marker icon
 const createCustomIcon = () => {
@@ -94,8 +95,8 @@ const MapPage = () => {
     }
 
     return (
-        <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh', py: 4 }}>
-            <Box sx={{ px: '5%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
+            <Box sx={{ py: 4, px: '5%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4 }}>
                     US Border Communities
                 </Typography>
@@ -196,6 +197,9 @@ const MapPage = () => {
                     </Typography>
                 </Paper>
             </Box>
+
+            {/* Footer */}
+            <Footer />
         </Box>
     );
 };

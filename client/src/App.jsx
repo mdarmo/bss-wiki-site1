@@ -18,14 +18,7 @@ const theme = createTheme({
     },
     typography: {
         fontFamily: [
-            'LeagueSpartan',
-            '-apple-system',
-            'BlinkMacSystemFont',
-            '"Segoe UI"',
-            'Roboto',
-            '"Helvetica Neue"',
-            'Arial',
-            'sans-serif',
+            'LeagueSpartan'
         ].join(','),
         fontSize: 14,
         h1: {

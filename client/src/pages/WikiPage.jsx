@@ -32,6 +32,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../services/api';
+import Footer from '../components/Footer';
 
 const WikiPage = () => {
     const location = useLocation();
@@ -1131,8 +1132,8 @@ const WikiPage = () => {
     }, [location.state]);
 
     return (
-        <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh', py: 4 }}>
-            <Box sx={{ px: '5%' }}>
+        <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
+            <Box sx={{ px: '5%', py: 4 }}>
                 <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4 }}>
                     BSI Wiki
                 </Typography>
@@ -1144,10 +1145,10 @@ const WikiPage = () => {
                             <List component="nav">
                                 {/* Communities */}
                                 <ListItemButton onClick={() => handleSectionClick('communities')}>
-                                    <LocationOnIcon sx={{ mr: 2 }} color="primary" />
+                                    <LocationOnIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
                                         primary="Communities" 
-                                        primaryTypographyProps={{ fontSize: '1.035rem' }} // 15% increase from default 0.9rem
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
                                     />
                                     {openSections.communities ? <ExpandLess /> : <ExpandMore />}
                                 </ListItemButton>
@@ -1167,7 +1168,7 @@ const WikiPage = () => {
                                                 >
                                                     <ListItemText 
                                                         primary={community.name}
-                                                        primaryTypographyProps={{ fontSize: '1.035rem' }} // 15% increase from 0.9rem
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
                                                     />
                                                 </ListItemButton>
                                             ))
@@ -1179,7 +1180,7 @@ const WikiPage = () => {
 
                                 {/* Politicians */}
                                 <ListItemButton onClick={() => handleSectionClick('politicians')}>
-                                    <PeopleIcon sx={{ mr: 2 }} color="primary" />
+                                    <PeopleIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
                                         primary="Politicians"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
@@ -1214,7 +1215,7 @@ const WikiPage = () => {
 
                                 {/* Corporations */}
                                 <ListItemButton onClick={() => handleSectionClick('corporations')}>
-                                    <BusinessIcon sx={{ mr: 2 }} color="primary" />
+                                    <BusinessIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
                                         primary="Corporations"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
@@ -1249,7 +1250,7 @@ const WikiPage = () => {
 
                                 {/* Profiteers */}
                                 <ListItemButton onClick={() => handleSectionClick('profiteers')}>
-                                    <PeopleIcon sx={{ mr: 2 }} color="primary" />
+                                    <PeopleIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
                                         primary="Profiteers"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
@@ -1284,7 +1285,7 @@ const WikiPage = () => {
 
                                 {/* Resources */}
                                 <ListItemButton onClick={() => handleSectionClick('resources')}>
-                                    <LinkIcon sx={{ mr: 2 }} color="primary" />
+                                    <LinkIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
                                         primary="Resources"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
@@ -1325,6 +1326,9 @@ const WikiPage = () => {
 
             {/* Person Dialog */}
             {renderPersonDialog()}
+
+            {/* Footer */}
+            <Footer />
         </Box>
     );
 };
