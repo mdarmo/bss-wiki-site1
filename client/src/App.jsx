@@ -16,6 +16,66 @@ const theme = createTheme({
             main: '#dc004e',
         },
     },
+    typography: {
+        fontFamily: [
+            'LeagueSpartan',
+            '-apple-system',
+            'BlinkMacSystemFont',
+            '"Segoe UI"',
+            'Roboto',
+            '"Helvetica Neue"',
+            'Arial',
+            'sans-serif',
+        ].join(','),
+        fontSize: 14,
+        h1: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 700,
+            fontSize: '3rem',
+        },
+        h2: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 700,
+            fontSize: '2.5rem',
+        },
+        h3: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 700,
+            fontSize: '2rem',
+        },
+        h4: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 500,
+            fontSize: '1.75rem',
+        },
+        h5: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 500,
+            fontSize: '1.5rem',
+        },
+        h6: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 500,
+            fontSize: '1.25rem',
+        },
+        body1: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontSize: '1rem',
+            fontWeight: 400,
+            lineHeight: 1.6,
+        },
+        body2: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontSize: '0.875rem',
+            fontWeight: 400,
+            lineHeight: 1.5,
+        },
+        button: {
+            fontFamily: 'LeagueSpartan, sans-serif',
+            fontWeight: 500,
+            textTransform: 'none',
+        },
+    },
 });
 
 function App() {
