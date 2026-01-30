@@ -79,6 +79,10 @@ const WikiPage = () => {
         { name: 'Southern Border', url: 'https://www.southernborder.org/' }
     ];
 
+    // Add this ref at the top of the WikiPage component with other state declarations
+    const contentRef = React.useRef(null);
+    const menuRef = React.useRef(null);
+
     // Fetch communities
     const fetchCommunities = async () => {
         if (communities.length > 0) return;
@@ -196,6 +200,7 @@ const WikiPage = () => {
         }
     };
 
+    // Update the handleItemClick function to scroll to content on mobile
     const handleItemClick = async (type, item) => {
         setSelectedType(type);
         setError(null);
@@ -223,15 +228,32 @@ const WikiPage = () => {
                 console.log('Influencer detail:', detailed);
                 setSelectedItem(detailed);
             }
+            
+            // Scroll to content on mobile, top on desktop
+            setTimeout(() => {
+                if (window.innerWidth < 900) { // md breakpoint
+                    contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    scrollToTop();
+                }
+            }, 100);
         } catch (err) {
             console.error('Failed to load details:', err);
             setError('Failed to load details: ' + err.message);
         }
     };
 
+    // Update handleCloseDetails to scroll to menu on mobile
     const handleCloseDetails = () => {
         setSelectedItem(null);
         setSelectedType(null);
+        
+        // Scroll to menu on mobile
+        setTimeout(() => {
+            if (window.innerWidth < 900) { // md breakpoint
+                menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
     };
 
     const parseJSON = (jsonString) => {
@@ -246,6 +268,11 @@ const WikiPage = () => {
     };
 
     // Add this function at the component level, after handleCloseDetails
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Add this function after handleCloseDetails
     const handlePoliticianClickFromCommunity = async (politicianName) => {
         try {
             // Ensure politicians are loaded
@@ -267,6 +294,9 @@ const WikiPage = () => {
                 // Display politician details and select in menu
                 setSelectedType('politician');
                 setSelectedItem(politician);
+                
+                // Scroll to top after content loads
+                setTimeout(() => scrollToTop(), 100);
             } else {
                 console.error('Politician not found:', politicianName);
                 setError(`Politician "${politicianName}" not found`);
@@ -458,6 +488,9 @@ const WikiPage = () => {
                     // Display person details and select in menu
                     setSelectedType('person');
                     setSelectedItem(person);
+                    
+                    // Scroll to top after content loads
+                    setTimeout(() => scrollToTop(), 100);
                 } else {
                     console.error('Person not found:', founderName);
                     setError(`Person "${founderName}" not found`);
@@ -1301,6 +1334,7 @@ const WikiPage = () => {
         }
     }, [location.state]);
 
+    // Update the JSX to add refs
     return (
         <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
             <Box sx={{ px: '5%', py: 4 }}>
@@ -1309,8 +1343,13 @@ const WikiPage = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
+                    {/* Left Menu Column - Add ref */}
                     <Grid item xs={12} md={3.45}>
-                        <Paper elevation={2} sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}>
+                        <Paper 
+                            ref={menuRef}
+                            elevation={2} 
+                            sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}
+                        >
                             <List component="nav">
                                 {/* Communities */}
                                 <ListItemButton onClick={() => handleSectionClick('communities')}>
@@ -1519,9 +1558,13 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Middle Content Column - decreased from md={9} to md={8.55} to compensate */}
+                    {/* Middle Content Column - Add ref */}
                     <Grid item xs={12} md={8.55}>
-                        <Paper elevation={2} sx={{ p: 4, minHeight: '70vh' }}>
+                        <Paper 
+                            ref={contentRef}
+                            elevation={2} 
+                            sx={{ p: 4, minHeight: '70vh' }}
+                        >
                             {renderContent()}
                         </Paper>
                     </Grid>
