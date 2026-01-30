@@ -5,13 +5,23 @@ const pool = require('../db');
 // GET all politicians
 router.get('/', async (req, res) => {
     try {
-        const [rows] = await pool.query(
-            'SELECT * FROM politicians ORDER BY name'
-        );
+        const { name } = req.query;
+        
+        let query = 'SELECT * FROM politicians';
+        let params = [];
+        
+        if (name) {
+            query += ' WHERE name = ?';
+            params.push(name);
+        }
+        
+        query += ' ORDER BY name';
+        
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Error fetching politicians:', err);
+        res.status(500).json({ error: 'Server error', details: err.message });
     }
 });
 

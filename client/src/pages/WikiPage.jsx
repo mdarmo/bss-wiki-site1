@@ -30,6 +30,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import PeopleIcon from '@mui/icons-material/People';
 import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import api from '../services/api';
 
 const WikiPage = () => {
@@ -218,25 +219,40 @@ const WikiPage = () => {
         }
     };
 
-    const renderCommunityDetail = (community) => {
-        const communityPoliticians = parseJSON(community.major_politicians);
-        
-        const handlePoliticianClick = async (politicianName) => {
-            // Ensure politicians are loaded from state
+    // Add this function at the component level, after handleCloseDetails
+    const handlePoliticianClickFromCommunity = async (politicianName) => {
+        try {
+            // Ensure politicians are loaded
             if (politicians.length === 0) {
                 await fetchPoliticians();
             }
             
-            // Find the politician by name from the state and display their details
-            setTimeout(async () => {
-                const politician = politicians.find(p => p.name === politicianName);
-                if (politician) {
-                    await handleItemClick('politician', politician);
-                } else {
-                    console.error('Politician not found:', politicianName);
-                }
-            }, 100);
-        };
+            // Open politicians section
+            setOpenSections(prev => ({
+                ...prev,
+                politicians: true,
+                communities: false
+            }));
+
+            // Fetch politician by name
+            const politician = await api.getPoliticianByName(politicianName);
+            
+            if (politician) {
+                // Display politician details and select in menu
+                setSelectedType('politician');
+                setSelectedItem(politician);
+            } else {
+                console.error('Politician not found:', politicianName);
+                setError(`Politician "${politicianName}" not found`);
+            }
+        } catch (error) {
+            console.error('Error fetching politician:', error);
+            setError(`Failed to load politician: ${error.message}`);
+        }
+    };
+
+    const renderCommunityDetail = (community) => {
+        const communityPoliticians = parseJSON(community.major_politicians);
         
         return (
             <Box>
@@ -256,89 +272,128 @@ const WikiPage = () => {
                     </IconButton>
                 </Box>
                 <Divider sx={{ my: 2 }} />
-                
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                                Coordinates
-                            </Typography>
-                            <Typography variant="body1">
-                                {community.latitude}, {community.longitude}
-                            </Typography>
-                        </Paper>
 
-                        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
+                <Grid container spacing={3}>
+                    {/* Community Image - reduced by 40% */}
+                    <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                        <Box
+                            component="img"
+                            src={`/images/communities/${community.image || 'placeholder.jpg'}`}
+                            alt={community.name}
+                            sx={{
+                                width: '60%',
+                                maxWidth: 480,
+                                height: 'auto',
+                                borderRadius: 2,
+                                boxShadow: 3,
+                                objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                                e.target.src = '/images/communities/placeholder.jpg';
+                            }}
+                        />
+                    </Grid>
+
+                    {/* Description */}
+                    {community.description && (
+                        <Grid item xs={12}>
+                            <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    About {community.name}
+                                </Typography>
+                                <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+                                    {community.description}
+                                </Typography>
+                            </Paper>
+                        </Grid>
+                    )}
+
+                    {/* Community Details Grid */}
+                    <Grid item xs={12} md={6}>
+                        <Paper elevation={1} sx={{ p: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                 Population
                             </Typography>
-                            <Typography variant="body1">
-                                {community.population?.toLocaleString()}
-                            </Typography>
-                        </Paper>
-
-                        <Paper elevation={1} sx={{ p: 2 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                                Distance from Border
-                            </Typography>
-                            <Typography variant="body1">
-                                {community.distance_from_border}
+                            <Typography variant="h6">
+                                {community.population?.toLocaleString() || 'N/A'}
                             </Typography>
                         </Paper>
                     </Grid>
 
                     <Grid item xs={12} md={6}>
                         <Paper elevation={1} sx={{ p: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Distance from Border
+                            </Typography>
+                            <Typography variant="h6">
+                                {community.distance_from_border || 'N/A'}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+
+                    {/* Major Politicians Section */}
+                    <Grid item xs={12}>
+                        <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
                                 Major Politicians
                             </Typography>
                             <List>
-                                {communityPoliticians.map((pol, index) => (
-                                    <ListItem 
-                                        key={index} 
-                                        divider
-                                        sx={{
-                                            '&:hover': {
-                                                backgroundColor: 'action.hover'
-                                            }
-                                        }}
-                                    >
-                                        <ListItemText
-                                            primary={
-                                                <MuiLink
-                                                    component="button"
-                                                    variant="body1"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handlePoliticianClick(pol.politician);
-                                                    }}
-                                                    sx={{
-                                                        cursor: 'pointer',
-                                                        textDecoration: 'none',
-                                                        textAlign: 'left',
-                                                        color: 'primary.main',
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        padding: 0,
-                                                        font: 'inherit',
-                                                        '&:hover': {
-                                                            textDecoration: 'underline'
-                                                        }
-                                                    }}
-                                                >
-                                                    {pol.politician}
-                                                </MuiLink>
-                                            }
-                                            secondary={pol.party}
-                                        />
-                                        <Chip 
-                                            label={pol.party} 
-                                            size="small"
-                                            color={pol.party === 'Democratic' ? 'primary' : pol.party === 'Republican' ? 'error' : 'default'}
+                                {communityPoliticians.length > 0 ? (
+                                    communityPoliticians.map((pol, index) => (
+                                        <ListItem 
+                                            key={`${pol.politician}-${index}`}
+                                            sx={{ 
+                                                borderLeft: `4px solid ${
+                                                    pol.party === 'Democratic' ? '#1976d2' : 
+                                                    pol.party === 'Republican' ? '#d32f2f' : 
+                                                    '#757575'
+                                                }`,
+                                                mb: 1,
+                                                backgroundColor: '#f5f5f5',
+                                                borderRadius: 1
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={
+                                                    <MuiLink
+                                                        component="button"
+                                                        variant="body1"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            console.log('Clicking politician:', pol.politician);
+                                                            handlePoliticianClickFromCommunity(pol.politician);
+                                                        }}
+                                                        sx={{
+                                                            cursor: 'pointer',
+                                                            fontWeight: 'medium',
+                                                            textDecoration: 'none',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            padding: 0,
+                                                            color: 'primary.main',
+                                                            textAlign: 'left',
+                                                            font: 'inherit',
+                                                            '&:hover': {
+                                                                textDecoration: 'underline'
+                                                            }
+                                                        }}
+                                                    >
+                                                        {pol.politician}
+                                                    </MuiLink>
+                                                }
+                                                secondary={pol.party}
+                                            />
+                                        </ListItem>
+                                    ))
+                                ) : (
+                                    <ListItem>
+                                        <ListItemText 
+                                            primary="No politician information available" 
+                                            primaryTypographyProps={{ color: 'text.secondary', fontStyle: 'italic' }}
                                         />
                                     </ListItem>
-                                ))}
+                                )}
                             </List>
                         </Paper>
                     </Grid>
@@ -350,6 +405,42 @@ const WikiPage = () => {
     const renderCompanyDetail = (company) => {
         const founders = parseJSON(company.founders);
         const executives = parseJSON(company.executives);
+        
+        const handleFounderClick = async (founderName) => {
+            try {
+                // Close the person dialog first if it's open
+                if (personDialogOpen) {
+                    handleClosePersonDialog();
+                }
+                
+                // Ensure people are loaded
+                if (people.length === 0) {
+                    await fetchPeople();
+                }
+                
+                // Open profiteers section
+                setOpenSections(prev => ({
+                    ...prev,
+                    profiteers: true,
+                    corporations: false
+                }));
+
+                // Fetch person by name
+                const person = await api.getPersonByName(founderName);
+                
+                if (person) {
+                    // Display person details and select in menu
+                    setSelectedType('person');
+                    setSelectedItem(person);
+                } else {
+                    console.error('Person not found:', founderName);
+                    setError(`Person "${founderName}" not found`);
+                }
+            } catch (error) {
+                console.error('Error fetching person:', error);
+                setError(`Failed to load person: ${error.message}`);
+            }
+        };
         
         return (
             <Box>
@@ -428,7 +519,7 @@ const WikiPage = () => {
                                             label={founder} 
                                             color="primary" 
                                             variant="outlined"
-                                            onClick={() => handlePersonClick(founder)}
+                                            onClick={() => handleFounderClick(founder)}
                                             sx={{ cursor: 'pointer' }}
                                         />
                                     ))}
@@ -451,10 +542,16 @@ const WikiPage = () => {
                                                     <MuiLink
                                                         component="button"
                                                         variant="body1"
-                                                        onClick={() => handlePersonClick(exec.name)}
+                                                        onClick={() => handleFounderClick(exec.name)}
                                                         sx={{
                                                             cursor: 'pointer',
                                                             textDecoration: 'none',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            padding: 0,
+                                                            color: 'primary.main',
+                                                            textAlign: 'left',
+                                                            font: 'inherit',
                                                             '&:hover': {
                                                                 textDecoration: 'underline'
                                                             }
@@ -758,6 +855,42 @@ const WikiPage = () => {
         const affiliations = selectedPerson ? parseJSON(selectedPerson.affiliations) : [];
         const connections = selectedPerson ? parseJSON(selectedPerson.connections) : [];
         
+        const handleConnectionClick = async (connectionName) => {
+            try {
+                // Close the current dialog
+                handleClosePersonDialog();
+                
+                // Small delay to allow dialog to close smoothly
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Ensure people are loaded
+                if (people.length === 0) {
+                    await fetchPeople();
+                }
+                
+                // Open profiteers section
+                setOpenSections(prev => ({
+                    ...prev,
+                    profiteers: true
+                }));
+
+                // Fetch person by name
+                const person = await api.getPersonByName(connectionName);
+                
+                if (person) {
+                    // Display person details and select in menu
+                    setSelectedType('person');
+                    setSelectedItem(person);
+                } else {
+                    console.error('Person not found:', connectionName);
+                    setError(`Person "${connectionName}" not found`);
+                }
+            } catch (error) {
+                console.error('Error fetching person:', error);
+                setError(`Failed to load person: ${error.message}`);
+            }
+        };
+        
         return (
             <Dialog 
                 open={personDialogOpen} 
@@ -766,12 +899,40 @@ const WikiPage = () => {
                 fullWidth
             >
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h5">
-                        {selectedPerson?.name || 'Loading...'}
-                    </Typography>
-                    <Button onClick={handleClosePersonDialog} sx={{ minWidth: 'auto' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="h5">
+                            {selectedPerson?.name || 'Loading...'}
+                        </Typography>
+                        {selectedPerson && (
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={async () => {
+                                    // Close dialog and navigate to person detail
+                                    handleClosePersonDialog();
+                                    await new Promise(resolve => setTimeout(resolve, 300));
+                                    
+                                    if (people.length === 0) {
+                                        await fetchPeople();
+                                    }
+                                    
+                                    setOpenSections(prev => ({
+                                        ...prev,
+                                        profiteers: true
+                                    }));
+                                    
+                                    setSelectedType('person');
+                                    setSelectedItem(selectedPerson);
+                                }}
+                                sx={{ textTransform: 'none' }}
+                            >
+                                View Full Profile
+                            </Button>
+                        )}
+                    </Box>
+                    <IconButton onClick={handleClosePersonDialog}>
                         <CloseIcon />
-                    </Button>
+                    </IconButton>
                 </DialogTitle>
                 <DialogContent dividers>
                     {loadingPerson ? (
@@ -856,7 +1017,7 @@ const WikiPage = () => {
                                                     label={connection}
                                                     color="primary"
                                                     size="small"
-                                                    onClick={() => handlePersonClick(connection)}
+                                                    onClick={() => handleConnectionClick(connection)}
                                                     sx={{ cursor: 'pointer' }}
                                                 />
                                             ))}
@@ -887,10 +1048,29 @@ const WikiPage = () => {
 
         if (!selectedItem) {
             return (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <Typography variant="h5" color="text.secondary">
-                        {/* Select an item from the navigation to view details */}
-                    </Typography>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%',
+                    minHeight: '60vh'
+                }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <ArrowBackIcon 
+                            sx={{ 
+                                fontSize: '3rem', 
+                                color: 'text.secondary',
+                                opacity: 0.6 
+                            }} 
+                        />
+                        <Typography 
+                            variant="h5" 
+                            color="text.secondary"
+                            sx={{ opacity: 0.7 }}
+                        >
+                            Select an item to view its details
+                        </Typography>
+                    </Box>
                 </Box>
             );
         }

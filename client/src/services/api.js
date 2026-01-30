@@ -82,6 +82,20 @@ const api = {
         }
     },
 
+    getPoliticianByName: async (name) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/politicians?name=${encodeURIComponent(name)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const politicians = await response.json();
+            return politicians.length > 0 ? politicians[0] : null;
+        } catch (error) {
+            console.error('API Error - getPoliticianByName:', error);
+            throw error;
+        }
+    },
+
     // People endpoints
     getAllPeople: async () => {
         try {
