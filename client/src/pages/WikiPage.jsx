@@ -31,6 +31,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CampaignIcon from '@mui/icons-material/Campaign'; // Add this import
 import api from '../services/api';
 import Footer from '../components/Footer';
 
@@ -42,7 +43,8 @@ const WikiPage = () => {
         communities: false,
         politicians: false,
         corporations: false,
-        profiteers: false, // Add profiteers section
+        profiteers: false,
+        influence: false, // Add this
         resources: false
     });
 
@@ -50,12 +52,14 @@ const WikiPage = () => {
     const [communities, setCommunities] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [politicians, setPoliticians] = useState([]);
-    const [people, setPeople] = useState([]); // Add people state
+    const [people, setPeople] = useState([]);
+    const [influencers, setInfluencers] = useState([]); // Add this
     const [loading, setLoading] = useState({
         communities: false,
         corporations: false,
         politicians: false,
-        profiteers: false // Add profiteers loading state
+        profiteers: false,
+        influence: false // Add this
     });
     const [error, setError] = useState(null);
 
@@ -139,6 +143,22 @@ const WikiPage = () => {
         setLoading(prev => ({ ...prev, profiteers: false }));
     };
 
+    // Add fetch influencers function after fetchPeople
+    const fetchInfluencers = async () => {
+        if (influencers.length > 0) return;
+        setLoading(prev => ({ ...prev, influence: true }));
+        setError(null);
+        try {
+            const data = await api.getAllInfluencers();
+            console.log('Influencers data:', data);
+            setInfluencers(data);
+        } catch (err) {
+            console.error('Failed to load influencers:', err);
+            setError('Failed to load influencers: ' + err.message);
+        }
+        setLoading(prev => ({ ...prev, influence: false }));
+    };
+
     // Fetch person details
     const handlePersonClick = async (personName) => {
         setLoadingPerson(true);
@@ -171,7 +191,8 @@ const WikiPage = () => {
             if (section === 'communities') fetchCommunities();
             if (section === 'corporations') fetchCompanies();
             if (section === 'politicians') fetchPoliticians();
-            if (section === 'profiteers') fetchPeople(); // Add profiteers fetching
+            if (section === 'profiteers') fetchPeople();
+            if (section === 'influence') fetchInfluencers(); // Add this
         }
     };
 
@@ -196,6 +217,10 @@ const WikiPage = () => {
             } else if (type === 'person') {
                 const detailed = await api.getPersonById(item.id);
                 console.log('Person detail:', detailed);
+                setSelectedItem(detailed);
+            } else if (type === 'influencer') { // Add this
+                const detailed = await api.getInfluencerById(item.id);
+                console.log('Influencer detail:', detailed);
                 setSelectedItem(detailed);
             }
         } catch (err) {
@@ -852,6 +877,144 @@ const WikiPage = () => {
         );
     };
 
+    // Add this function after renderPersonDetail
+    const renderInfluencerDetail = (influencer) => {
+        const causes = parseJSON(influencer.causes);
+        const connections = parseJSON(influencer.connections);
+        
+        return (
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box>
+                        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CampaignIcon color="primary" />
+                            {influencer.name}
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
+                            {influencer.position}
+                        </Typography>
+                    </Box>
+                    <IconButton 
+                        onClick={handleCloseDetails}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&:hover': { color: 'error.main' }
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+
+                <Grid container spacing={3}>
+                    {/* Influencer Image */}
+                    <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Avatar
+                            src={`/images/influencers/${influencer.image}`}
+                            alt={influencer.name}
+                            sx={{ 
+                                width: 200, 
+                                height: 200,
+                                border: '3px solid',
+                                borderColor: 'primary.main'
+                            }}
+                        />
+                    </Grid>
+                    
+                    <Grid item xs={12} md={8}>
+                        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Platform
+                            </Typography>
+                            <Typography variant="body1" fontWeight="medium">
+                                {influencer.platform}
+                            </Typography>
+                        </Paper>
+
+                        {causes.length > 0 && (
+                            <Paper elevation={1} sx={{ p: 2 }}>
+                                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                    Key Issues & Causes
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                    {causes.map((cause, index) => (
+                                        <Chip 
+                                            key={index} 
+                                            label={cause} 
+                                            size="small"
+                                            variant="outlined"
+                                            color="primary"
+                                        />
+                                    ))}
+                                </Box>
+                            </Paper>
+                        )}
+                    </Grid>
+
+                    {/* Biography */}
+                    <Grid item xs={12}>
+                        <Paper elevation={1} sx={{ p: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Biography
+                            </Typography>
+                            <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                                {influencer.short_bio}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+
+                    {/* Connections */}
+                    {connections.length > 0 && (
+                        <Grid item xs={12}>
+                            <Paper elevation={1} sx={{ p: 2 }}>
+                                <Typography variant="h6" gutterBottom>
+                                    Notable Connections
+                                </Typography>
+                                <List>
+                                    {connections.map((conn, index) => (
+                                        <ListItem 
+                                            key={index}
+                                            sx={{ 
+                                                borderLeft: `4px solid ${
+                                                    conn.type === 'politician' ? '#1976d2' : 
+                                                    conn.type === 'company' ? '#f57c00' : 
+                                                    conn.type === 'community' ? '#388e3c' :
+                                                    '#757575'
+                                                }`,
+                                                mb: 1,
+                                                backgroundColor: '#f5f5f5',
+                                                borderRadius: 1
+                                            }}
+                                        >
+                                            <ListItemText
+                                                primary={
+                                                    <Typography variant="body1" fontWeight="medium">
+                                                        {conn.entity}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <>
+                                                        <Typography component="span" variant="body2" color="text.secondary">
+                                                            <strong>Type:</strong> {conn.type.charAt(0).toUpperCase() + conn.type.slice(1)}
+                                                        </Typography>
+                                                        <br />
+                                                        <Typography component="span" variant="body2" color="text.secondary">
+                                                            <strong>Relationship:</strong> {conn.relationship}
+                                                        </Typography>
+                                                    </>
+                                                }
+                                            />
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </Paper>
+                        </Grid>
+                    )}
+                </Grid>
+            </Box>
+        );
+    };
+
     const renderPersonDialog = () => {
         const affiliations = selectedPerson ? parseJSON(selectedPerson.affiliations) : [];
         const connections = selectedPerson ? parseJSON(selectedPerson.connections) : [];
@@ -1084,7 +1247,9 @@ const WikiPage = () => {
             case 'politician':
                 return renderPoliticianDetail(selectedItem);
             case 'person':
-                return renderPersonDetail(selectedItem); // Add person rendering
+                return renderPersonDetail(selectedItem);
+            case 'influencer': // Add this
+                return renderInfluencerDetail(selectedItem);
             default:
                 return null;
         }
@@ -1118,6 +1283,11 @@ const WikiPage = () => {
                         setOpenSections(prev => ({ ...prev, profiteers: true }));
                         const person = await api.getPersonById(selectedId);
                         handleItemClick('person', person);
+                    } else if (selectedType === 'influencer') { // Add this
+                        await fetchInfluencers();
+                        setOpenSections(prev => ({ ...prev, influence: true }));
+                        const influencer = await api.getInfluencerById(selectedId);
+                        handleItemClick('influencer', influencer);
                     }
                 } catch (err) {
                     console.error('Failed to load entity from navigation:', err);
@@ -1139,7 +1309,6 @@ const WikiPage = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
-                    {/* Left Navigation Column - increased from md={3} to md={3.45} (15% increase) */}
                     <Grid item xs={12} md={3.45}>
                         <Paper elevation={2} sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}>
                             <List component="nav">
@@ -1273,6 +1442,41 @@ const WikiPage = () => {
                                                 >
                                                     <ListItemText 
                                                         primary={person.name}
+                                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                                    />
+                                                </ListItemButton>
+                                            ))
+                                        )}
+                                    </List>
+                                </Collapse>
+
+                                <Divider />
+
+                                {/* Influence - NEW SECTION */}
+                                <ListItemButton onClick={() => handleSectionClick('influence')}>
+                                    <CampaignIcon sx={{ mr: 2, color: '#0D1E20' }} />
+                                    <ListItemText 
+                                        primary="Influence"
+                                        primaryTypographyProps={{ fontSize: '1.035rem' }}
+                                    />
+                                    {openSections.influence ? <ExpandLess /> : <ExpandMore />}
+                                </ListItemButton>
+                                <Collapse in={openSections.influence} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        {loading.influence ? (
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                                <CircularProgress size={24} />
+                                            </Box>
+                                        ) : (
+                                            influencers.map((influencer) => (
+                                                <ListItemButton
+                                                    key={influencer.id}
+                                                    sx={{ pl: 4 }}
+                                                    onClick={() => handleItemClick('influencer', influencer)}
+                                                    selected={selectedItem?.id === influencer.id && selectedType === 'influencer'}
+                                                >
+                                                    <ListItemText 
+                                                        primary={influencer.name}
                                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
                                                     />
                                                 </ListItemButton>

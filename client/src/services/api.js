@@ -135,6 +135,25 @@ const api = {
             throw error;
         }
     },
+
+    // Influencers
+    getAllInfluencers: async () => {
+        const response = await fetch(`${API_BASE_URL}/influencers`);
+        if (!response.ok) throw new Error('Failed to fetch influencers');
+        return response.json();
+    },
+
+    getInfluencerById: async (id) => {
+        const response = await fetch(`${API_BASE_URL}/influencers/${id}`);
+        if (!response.ok) throw new Error('Failed to fetch influencer');
+        return response.json();
+    },
+
+    getInfluencerByName: async (name) => {
+        const response = await fetch(`${API_BASE_URL}/influencers/by-name/${encodeURIComponent(name)}`);
+        if (!response.ok) throw new Error('Failed to fetch influencer');
+        return response.json();
+    },
 };
 
 export default api;

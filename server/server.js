@@ -29,12 +29,14 @@ const companiesRoutes = require('./routes/companies');
 const communitiesRoutes = require('./routes/communities');
 const politiciansRoutes = require('./routes/politicians');
 const peopleRoutes = require('./routes/people');
+const influencersRouter = require('./routes/influencers');
 
 // API Routes
-app.use('/api/companies', companiesRoutes);
 app.use('/api/communities', communitiesRoutes);
+app.use('/api/companies', companiesRoutes);
 app.use('/api/politicians', politiciansRoutes);
 app.use('/api/people', peopleRoutes);
+app.use('/api/influencers', influencersRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
