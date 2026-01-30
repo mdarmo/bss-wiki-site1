@@ -31,7 +31,9 @@ import PeopleIcon from '@mui/icons-material/People';
 import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CampaignIcon from '@mui/icons-material/Campaign'; // Add this import
+import CampaignIcon from '@mui/icons-material/Campaign';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { toPng } from 'html-to-image';
 import api from '../services/api';
 import Footer from '../components/Footer';
 
@@ -44,7 +46,7 @@ const WikiPage = () => {
         politicians: false,
         corporations: false,
         profiteers: false,
-        influence: false, // Add this
+        influence: false,
         resources: false
     });
 
@@ -53,13 +55,13 @@ const WikiPage = () => {
     const [companies, setCompanies] = useState([]);
     const [politicians, setPoliticians] = useState([]);
     const [people, setPeople] = useState([]);
-    const [influencers, setInfluencers] = useState([]); // Add this
+    const [influencers, setInfluencers] = useState([]);
     const [loading, setLoading] = useState({
         communities: false,
         corporations: false,
         politicians: false,
         profiteers: false,
-        influence: false // Add this
+        influence: false
     });
     const [error, setError] = useState(null);
 
@@ -79,9 +81,9 @@ const WikiPage = () => {
         { name: 'Southern Border', url: 'https://www.southernborder.org/' }
     ];
 
-    // Add this ref at the top of the WikiPage component with other state declarations
     const contentRef = React.useRef(null);
     const menuRef = React.useRef(null);
+    const captureRef = React.useRef(null);
 
     // Fetch communities
     const fetchCommunities = async () => {
@@ -131,7 +133,7 @@ const WikiPage = () => {
         setLoading(prev => ({ ...prev, politicians: false }));
     };
 
-    // Add fetch people function
+    // Fetch people
     const fetchPeople = async () => {
         if (people.length > 0) return;
         setLoading(prev => ({ ...prev, profiteers: true }));
@@ -147,7 +149,7 @@ const WikiPage = () => {
         setLoading(prev => ({ ...prev, profiteers: false }));
     };
 
-    // Add fetch influencers function after fetchPeople
+    // Fetch influencers
     const fetchInfluencers = async () => {
         if (influencers.length > 0) return;
         setLoading(prev => ({ ...prev, influence: true }));
@@ -196,11 +198,10 @@ const WikiPage = () => {
             if (section === 'corporations') fetchCompanies();
             if (section === 'politicians') fetchPoliticians();
             if (section === 'profiteers') fetchPeople();
-            if (section === 'influence') fetchInfluencers(); // Add this
+            if (section === 'influence') fetchInfluencers();
         }
     };
 
-    // Update the handleItemClick function to scroll to content on mobile
     const handleItemClick = async (type, item) => {
         setSelectedType(type);
         setError(null);
@@ -223,7 +224,7 @@ const WikiPage = () => {
                 const detailed = await api.getPersonById(item.id);
                 console.log('Person detail:', detailed);
                 setSelectedItem(detailed);
-            } else if (type === 'influencer') { // Add this
+            } else if (type === 'influencer') {
                 const detailed = await api.getInfluencerById(item.id);
                 console.log('Influencer detail:', detailed);
                 setSelectedItem(detailed);
@@ -231,7 +232,7 @@ const WikiPage = () => {
             
             // Scroll to content on mobile, top on desktop
             setTimeout(() => {
-                if (window.innerWidth < 900) { // md breakpoint
+                if (window.innerWidth < 900) {
                     contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {
                     scrollToTop();
@@ -243,14 +244,13 @@ const WikiPage = () => {
         }
     };
 
-    // Update handleCloseDetails to scroll to menu on mobile
     const handleCloseDetails = () => {
         setSelectedItem(null);
         setSelectedType(null);
         
         // Scroll to menu on mobile
         setTimeout(() => {
-            if (window.innerWidth < 900) { // md breakpoint
+            if (window.innerWidth < 900) {
                 menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }, 100);
@@ -267,37 +267,30 @@ const WikiPage = () => {
         }
     };
 
-    // Add this function at the component level, after handleCloseDetails
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Update handlePoliticianClickFromCommunity
     const handlePoliticianClickFromCommunity = async (politicianName) => {
         try {
-            // Ensure politicians are loaded
             if (politicians.length === 0) {
                 await fetchPoliticians();
             }
             
-            // Open politicians section
             setOpenSections(prev => ({
                 ...prev,
                 politicians: true,
                 communities: false
             }));
 
-            // Fetch politician by name
             const politician = await api.getPoliticianByName(politicianName);
             
             if (politician) {
-                // Display politician details and select in menu
                 setSelectedType('politician');
                 setSelectedItem(politician);
                 
-                // Scroll to content on mobile, top on desktop
                 setTimeout(() => {
-                    if (window.innerWidth < 900) { // md breakpoint
+                    if (window.innerWidth < 900) {
                         contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } else {
                         scrollToTop();
@@ -313,30 +306,67 @@ const WikiPage = () => {
         }
     };
 
+    const handleCaptureImage = async () => {
+        if (!captureRef.current) return;
+        
+        try {
+            const dataUrl = await toPng(captureRef.current, {
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                pixelRatio: 2,
+                skipFonts: true, // Add this to skip font processing
+                filter: (node) => {
+                    // Filter out any problematic nodes
+                    if (node.tagName === 'STYLE') return false;
+                    if (node.classList?.contains('MuiBackdrop-root')) return false;
+                    return true;
+                }
+            });
+            
+            const link = document.createElement('a');
+            link.download = `${selectedItem?.name || selectedItem?.company_name || 'entity'}-details.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Failed to capture image:', error);
+            setError('Failed to capture image. Please try again.');
+        }
+    };
+
     const renderCommunityDetail = (community) => {
         const communityPoliticians = parseJSON(community.major_politicians);
         
         return (
-            <Box>
+            <Box ref={captureRef}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocationOnIcon color="primary" />
+                        <LocationOnIcon sx={{ color: 'rgb(245, 192, 106)' }} />
                         {community.name}
                     </Typography>
-                    <IconButton 
-                        onClick={handleCloseDetails}
-                        sx={{ 
-                            color: 'text.secondary',
-                            '&:hover': { color: 'error.main' }
-                        }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                            onClick={handleCaptureImage}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' }
+                            }}
+                        >
+                            <CameraAltIcon />
+                        </IconButton>
+                        <IconButton 
+                            onClick={handleCloseDetails}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'error.main' }
+                            }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                 </Box>
                 <Divider sx={{ my: 2 }} />
 
                 <Grid container spacing={3}>
-                    {/* Community Image - reduced by 40% */}
                     <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                         <Box
                             component="img"
@@ -356,7 +386,6 @@ const WikiPage = () => {
                         />
                     </Grid>
 
-                    {/* Description */}
                     {community.description && (
                         <Grid item xs={12}>
                             <Paper elevation={1} sx={{ p: 3, mb: 2 }}>
@@ -370,7 +399,6 @@ const WikiPage = () => {
                         </Grid>
                     )}
 
-                    {/* Community Details Grid */}
                     <Grid item xs={12} md={6}>
                         <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -393,7 +421,6 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Major Politicians Section */}
                     <Grid item xs={12}>
                         <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
@@ -468,37 +495,30 @@ const WikiPage = () => {
         const founders = parseJSON(company.founders);
         const executives = parseJSON(company.executives);
         
-        // Update handleFounderClick in renderCompanyDetail
         const handleFounderClick = async (founderName) => {
             try {
-                // Close the person dialog first if it's open
                 if (personDialogOpen) {
                     handleClosePersonDialog();
                 }
                 
-                // Ensure people are loaded
                 if (people.length === 0) {
                     await fetchPeople();
                 }
                 
-                // Open profiteers section
                 setOpenSections(prev => ({
                     ...prev,
                     profiteers: true,
                     corporations: false
                 }));
 
-                // Fetch person by name
                 const person = await api.getPersonByName(founderName);
                 
                 if (person) {
-                    // Display person details and select in menu
                     setSelectedType('person');
                     setSelectedItem(person);
                     
-                    // Scroll to content on mobile, top on desktop
                     setTimeout(() => {
-                        if (window.innerWidth < 900) { // md breakpoint
+                        if (window.innerWidth < 900) {
                             contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         } else {
                             scrollToTop();
@@ -515,26 +535,37 @@ const WikiPage = () => {
         };
         
         return (
-            <Box>
+            <Box ref={captureRef}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                         <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <BusinessIcon color="primary" />
+                            <BusinessIcon sx={{ color: 'rgb(245, 192, 106)' }} />
                             {company.company_name}
                         </Typography>
                         <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
                             {company.legal_name}
                         </Typography>
                     </Box>
-                    <IconButton 
-                        onClick={handleCloseDetails}
-                        sx={{ 
-                            color: 'text.secondary',
-                            '&:hover': { color: 'error.main' }
-                        }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                            onClick={handleCaptureImage}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' }
+                            }}
+                        >
+                            <CameraAltIcon />
+                        </IconButton>
+                        <IconButton 
+                            onClick={handleCloseDetails}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'error.main' }
+                            }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                 </Box>
                 <Divider sx={{ my: 2 }} />
 
@@ -650,11 +681,11 @@ const WikiPage = () => {
         const legislation = parseJSON(politician.related_legislation);
         
         return (
-            <Box>
+            <Box ref={captureRef}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                         <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PeopleIcon color="primary" />
+                            <PeopleIcon sx={{ color: 'rgb(245, 192, 106)' }} />
                             {politician.name}
                         </Typography>
                         <Chip 
@@ -663,20 +694,30 @@ const WikiPage = () => {
                             sx={{ mt: 1 }}
                         />
                     </Box>
-                    <IconButton 
-                        onClick={handleCloseDetails}
-                        sx={{ 
-                            color: 'text.secondary',
-                            '&:hover': { color: 'error.main' }
-                        }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                            onClick={handleCaptureImage}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' }
+                            }}
+                        >
+                            <CameraAltIcon />
+                        </IconButton>
+                        <IconButton 
+                            onClick={handleCloseDetails}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'error.main' }
+                            }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                 </Box>
                 <Divider sx={{ my: 2 }} />
 
                 <Grid container spacing={3}>
-                    {/* Contact and Position Information */}
                     <Grid item xs={12}>
                         <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
                             <Grid container spacing={2}>
@@ -724,7 +765,6 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Known Funders */}
                     <Grid item xs={12} md={6}>
                         <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
@@ -749,7 +789,6 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Related Legislation */}
                     <Grid item xs={12} md={6}>
                         <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
@@ -783,21 +822,32 @@ const WikiPage = () => {
         const connections = parseJSON(person.connections);
         
         return (
-            <Box>
+            <Box ref={captureRef}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PeopleIcon color="primary" />
+                        <PeopleIcon sx={{ color: 'rgb(245, 192, 106)' }} />
                         {person.name}
                     </Typography>
-                    <IconButton 
-                        onClick={handleCloseDetails}
-                        sx={{ 
-                            color: 'text.secondary',
-                            '&:hover': { color: 'error.main' }
-                        }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                            onClick={handleCaptureImage}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' }
+                            }}
+                        >
+                            <CameraAltIcon />
+                        </IconButton>
+                        <IconButton 
+                            onClick={handleCloseDetails}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'error.main' }
+                            }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                 </Box>
                 <Divider sx={{ my: 2 }} />
 
@@ -835,7 +885,6 @@ const WikiPage = () => {
                                         component="button"
                                         variant="body1"
                                         onClick={async () => {
-                                            // Find company by name
                                             if (companies.length === 0) {
                                                 await fetchCompanies();
                                             }
@@ -902,7 +951,6 @@ const WikiPage = () => {
                                             color="primary"
                                             size="small"
                                             onClick={async () => {
-                                                // Find person by name
                                                 if (people.length === 0) {
                                                     await fetchPeople();
                                                 }
@@ -923,37 +971,46 @@ const WikiPage = () => {
         );
     };
 
-    // Add this function after renderPersonDetail
     const renderInfluencerDetail = (influencer) => {
         const causes = parseJSON(influencer.causes);
         const connections = parseJSON(influencer.connections);
         
         return (
-            <Box>
+            <Box ref={captureRef}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                         <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CampaignIcon color="primary" />
+                            <CampaignIcon sx={{ color: 'rgb(245, 192, 106)' }} />
                             {influencer.name}
                         </Typography>
                         <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
                             {influencer.position}
                         </Typography>
                     </Box>
-                    <IconButton 
-                        onClick={handleCloseDetails}
-                        sx={{ 
-                            color: 'text.secondary',
-                            '&:hover': { color: 'error.main' }
-                        }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                            onClick={handleCaptureImage}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'primary.main' }
+                            }}
+                        >
+                            <CameraAltIcon />
+                        </IconButton>
+                        <IconButton 
+                            onClick={handleCloseDetails}
+                            sx={{ 
+                                color: 'text.secondary',
+                                '&:hover': { color: 'error.main' }
+                            }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Box>
                 </Box>
                 <Divider sx={{ my: 2 }} />
 
                 <Grid container spacing={3}>
-                    {/* Influencer Image */}
                     <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
                         <Avatar
                             src={`/images/influencers/${influencer.image}`}
@@ -997,7 +1054,6 @@ const WikiPage = () => {
                         )}
                     </Grid>
 
-                    {/* Biography */}
                     <Grid item xs={12}>
                         <Paper elevation={1} sx={{ p: 2 }}>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -1009,7 +1065,6 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Connections */}
                     {connections.length > 0 && (
                         <Grid item xs={12}>
                             <Paper elevation={1} sx={{ p: 2 }}>
@@ -1067,28 +1122,22 @@ const WikiPage = () => {
         
         const handleConnectionClick = async (connectionName) => {
             try {
-                // Close the current dialog
                 handleClosePersonDialog();
                 
-                // Small delay to allow dialog to close smoothly
                 await new Promise(resolve => setTimeout(resolve, 300));
                 
-                // Ensure people are loaded
                 if (people.length === 0) {
                     await fetchPeople();
                 }
                 
-                // Open profiteers section
                 setOpenSections(prev => ({
                     ...prev,
                     profiteers: true
                 }));
 
-                // Fetch person by name
                 const person = await api.getPersonByName(connectionName);
                 
                 if (person) {
-                    // Display person details and select in menu
                     setSelectedType('person');
                     setSelectedItem(person);
                 } else {
@@ -1118,7 +1167,6 @@ const WikiPage = () => {
                                 variant="outlined"
                                 size="small"
                                 onClick={async () => {
-                                    // Close dialog and navigate to person detail
                                     handleClosePersonDialog();
                                     await new Promise(resolve => setTimeout(resolve, 300));
                                     
@@ -1294,19 +1342,17 @@ const WikiPage = () => {
                 return renderPoliticianDetail(selectedItem);
             case 'person':
                 return renderPersonDetail(selectedItem);
-            case 'influencer': // Add this
+            case 'influencer':
                 return renderInfluencerDetail(selectedItem);
             default:
                 return null;
         }
     };
 
-    // Handle navigation from featured articles
     useEffect(() => {
         if (location.state?.selectedType && location.state?.selectedId) {
             const { selectedType, selectedId } = location.state;
             
-            // Fetch and open the appropriate section
             const loadEntity = async () => {
                 try {
                     if (selectedType === 'community') {
@@ -1329,7 +1375,7 @@ const WikiPage = () => {
                         setOpenSections(prev => ({ ...prev, profiteers: true }));
                         const person = await api.getPersonById(selectedId);
                         handleItemClick('person', person);
-                    } else if (selectedType === 'influencer') { // Add this
+                    } else if (selectedType === 'influencer') {
                         await fetchInfluencers();
                         setOpenSections(prev => ({ ...prev, influence: true }));
                         const influencer = await api.getInfluencerById(selectedId);
@@ -1342,12 +1388,10 @@ const WikiPage = () => {
             
             loadEntity();
             
-            // Clear the navigation state
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
 
-    // Update the JSX to add refs
     return (
         <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
             <Box sx={{ px: '5%', py: 4 }}>
@@ -1356,7 +1400,6 @@ const WikiPage = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
-                    {/* Left Menu Column - Add ref */}
                     <Grid item xs={12} md={3.45}>
                         <Paper 
                             ref={menuRef}
@@ -1364,7 +1407,6 @@ const WikiPage = () => {
                             sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}
                         >
                             <List component="nav">
-                                {/* Communities */}
                                 <ListItemButton onClick={() => handleSectionClick('communities')}>
                                     <LocationOnIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1399,7 +1441,6 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Politicians */}
                                 <ListItemButton onClick={() => handleSectionClick('politicians')}>
                                     <PeopleIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1434,7 +1475,6 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Corporations */}
                                 <ListItemButton onClick={() => handleSectionClick('corporations')}>
                                     <BusinessIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1469,7 +1509,6 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Profiteers */}
                                 <ListItemButton onClick={() => handleSectionClick('profiteers')}>
                                     <PeopleIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1504,7 +1543,6 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Influence - NEW SECTION */}
                                 <ListItemButton onClick={() => handleSectionClick('influence')}>
                                     <CampaignIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1539,7 +1577,6 @@ const WikiPage = () => {
 
                                 <Divider />
 
-                                {/* Resources */}
                                 <ListItemButton onClick={() => handleSectionClick('resources')}>
                                     <LinkIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
@@ -1571,7 +1608,6 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Middle Content Column - Add ref */}
                     <Grid item xs={12} md={8.55}>
                         <Paper 
                             ref={contentRef}
@@ -1584,10 +1620,8 @@ const WikiPage = () => {
                 </Grid>
             </Box>
 
-            {/* Person Dialog */}
             {renderPersonDialog()}
 
-            {/* Footer */}
             <Footer />
         </Box>
     );
