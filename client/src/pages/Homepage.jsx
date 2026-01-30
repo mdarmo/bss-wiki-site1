@@ -10,7 +10,7 @@ const Homepage = () => {
                     Welcome to the BSI Wiki
                 </Typography>
                 <Typography variant="subtitle1" align="center" color="text.secondary">
-                    Border Security Initiative - Company Intelligence Database
+                    Border Communities Database
                 </Typography>
             </Paper>
 
@@ -19,19 +19,44 @@ const Homepage = () => {
                     About This Site
                 </Typography>
                 <Typography variant="body1" paragraph>
-                    The BSI Wiki serves as a comprehensive knowledge base for companies involved in border 
-                    security, defense technology, and related sectors. This platform provides detailed 
-                    information about key players in the industry, including their leadership, capabilities, 
-                    and market presence.
+                    The BSI Wiki serves as a comprehensive knowledge base documenting the complex network of 
+                    actors, institutions, and communities involved in border security and immigration enforcement. 
+                    This platform provides detailed information about the intersections of corporate interests, 
+                    political decision-making, and community impacts along border regions.
                 </Typography>
                 <Typography variant="body1" paragraph>
-                    Explore our database to discover companies working on unmanned aerial systems (UAS), 
-                    surveillance technology, AI-powered analytics, defense systems, and border security 
-                    infrastructure. Each company profile includes executive information, headquarters location, 
-                    mission statements, and key operational details.
+                    Our database includes:
+                </Typography>
+                <Typography variant="body1" component="div">
+                    <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+                        <li>
+                            <strong>Border Communities:</strong> Demographics, geographic data, and profiles of 
+                            communities directly affected by border security policies and infrastructure
+                        </li>
+                        <li>
+                            <strong>Politicians:</strong> Elected officials who shape border policy, including their 
+                            legislative actions, funding sources, and positions on border security issues
+                        </li>
+                        <li>
+                            <strong>Corporations:</strong> Companies involved in border security, surveillance technology, 
+                            detention facilities, defense systems, and related sectors, including their leadership, 
+                            capabilities, and government contracts
+                        </li>
+                        <li>
+                            <strong>Profiteers:</strong> Key executives and public figures who benefit from border 
+                            security spending, their affiliations, and connections within the industry
+                        </li>
+                    </Box>
+                </Typography>
+                <Typography variant="body1" paragraph>
+                    Explore our database to understand the relationships between unmanned aerial systems (UAS), 
+                    surveillance technology, AI-powered analytics, defense systems, and their impact on border 
+                    communities. Each profile includes detailed information about organizational structures, 
+                    political connections, and operational impacts on affected regions.
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    This is a prototype of the BSI site
+                    This is a prototype of the BSI site, continuously expanding to provide comprehensive 
+                    documentation of the border security industrial complex.
                 </Typography>
             </Paper>
 
