@@ -272,7 +272,7 @@ const WikiPage = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Add this function after handleCloseDetails
+    // Update handlePoliticianClickFromCommunity
     const handlePoliticianClickFromCommunity = async (politicianName) => {
         try {
             // Ensure politicians are loaded
@@ -295,8 +295,14 @@ const WikiPage = () => {
                 setSelectedType('politician');
                 setSelectedItem(politician);
                 
-                // Scroll to top after content loads
-                setTimeout(() => scrollToTop(), 100);
+                // Scroll to content on mobile, top on desktop
+                setTimeout(() => {
+                    if (window.innerWidth < 900) { // md breakpoint
+                        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        scrollToTop();
+                    }
+                }, 100);
             } else {
                 console.error('Politician not found:', politicianName);
                 setError(`Politician "${politicianName}" not found`);
@@ -462,6 +468,7 @@ const WikiPage = () => {
         const founders = parseJSON(company.founders);
         const executives = parseJSON(company.executives);
         
+        // Update handleFounderClick in renderCompanyDetail
         const handleFounderClick = async (founderName) => {
             try {
                 // Close the person dialog first if it's open
@@ -489,8 +496,14 @@ const WikiPage = () => {
                     setSelectedType('person');
                     setSelectedItem(person);
                     
-                    // Scroll to top after content loads
-                    setTimeout(() => scrollToTop(), 100);
+                    // Scroll to content on mobile, top on desktop
+                    setTimeout(() => {
+                        if (window.innerWidth < 900) { // md breakpoint
+                            contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                            scrollToTop();
+                        }
+                    }, 100);
                 } else {
                     console.error('Person not found:', founderName);
                     setError(`Person "${founderName}" not found`);
