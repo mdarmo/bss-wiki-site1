@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 const Homepage = () => {
     return (
         <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
-            <Box sx={{ py: 4, px: '20%' }}>
+            <Box sx={{ py: 4, px: { xs: '5%', md: '15%' } }}>
                 <Paper elevation={3} sx={{ p: 4, mb: 4, backgroundColor: '#f5f5f5' }}>
                     <Typography variant="h3" gutterBottom align="center">
                         Welcome to the BSS Wiki

@@ -1414,8 +1414,8 @@ const WikiPage = () => {
                     }}
                 >
                     <MapContainer
-                        center={[31.7683, -106.4850]}
-                        zoom={5}
+                        center={[32, -104]}
+                        zoom={4.5}
                         style={{ height: '100%', width: '100%' }}
                     >
                         <TileLayer
@@ -1618,7 +1618,68 @@ const WikiPage = () => {
                 </Typography>
 
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={3.45}>
+                    {/* Map Section - Shows first on mobile, in right column on desktop */}
+                    <Grid item xs={12} md={8.55} sx={{ order: { xs: 1, md: 2 } }}>
+                        {/* Map Toggle Button */}
+                        {showMap ? (
+                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<ExpandLessIcon />}
+                                    onClick={() => setShowMap(false)}
+                                    sx={{
+                                        borderColor: 'rgb(245, 192, 106)',
+                                        color: '#0D1E20',
+                                        '&:hover': {
+                                            borderColor: 'rgb(235, 182, 96)',
+                                            backgroundColor: 'rgba(245, 192, 106, 0.1)'
+                                        }
+                                    }}
+                                >
+                                    Hide Map
+                                </Button>
+                            </Box>
+                        ) : null}
+
+                        {/* Map */}
+                        {renderMap()}
+
+                        {/* Show Map Button (when hidden) - placed above content */}
+                        {!showMap && (
+                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<MapIcon />}
+                                    onClick={async () => {
+                                        if (communities.length === 0) {
+                                            await fetchCommunities();
+                                        }
+                                        setShowMap(true);
+                                    }}
+                                    sx={{
+                                        backgroundColor: 'rgb(245, 192, 106)',
+                                        '&:hover': {
+                                            backgroundColor: 'rgb(235, 182, 96)'
+                                        }
+                                    }}
+                                >
+                                    Show Map
+                                </Button>
+                            </Box>
+                        )}
+
+                        {/* Content */}
+                        <Paper 
+                            ref={contentRef}
+                            elevation={2} 
+                            sx={{ p: 4, minHeight: '70vh' }}
+                        >
+                            {renderContent()}
+                        </Paper>
+                    </Grid>
+
+                    {/* Category Menu - Shows second on mobile, in left column on desktop */}
+                    <Grid item xs={12} md={3.45} sx={{ order: { xs: 2, md: 1 } }}>
                         {/* Expand/Collapse All Buttons */}
                         <Box sx={{ mb: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
                             <Button
@@ -1891,65 +1952,6 @@ const WikiPage = () => {
                                     </List>
                                 </Collapse>
                             </List>
-                        </Paper>
-                    </Grid>
-
-                    <Grid item xs={12} md={8.55}>
-                        {/* Map Toggle Button */}
-                        {showMap ? (
-                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<ExpandLessIcon />}
-                                    onClick={() => setShowMap(false)}
-                                    sx={{
-                                        borderColor: 'rgb(245, 192, 106)',
-                                        color: '#0D1E20',
-                                        '&:hover': {
-                                            borderColor: 'rgb(235, 182, 96)',
-                                            backgroundColor: 'rgba(245, 192, 106, 0.1)'
-                                        }
-                                    }}
-                                >
-                                    Hide Map
-                                </Button>
-                            </Box>
-                        ) : null}
-
-                        {/* Map */}
-                        {renderMap()}
-
-                        {/* Show Map Button (when hidden) - placed above content */}
-                        {!showMap && (
-                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-                                <Button
-                                    variant="contained"
-                                    startIcon={<MapIcon />}
-                                    onClick={async () => {
-                                        if (communities.length === 0) {
-                                            await fetchCommunities();
-                                        }
-                                        setShowMap(true);
-                                    }}
-                                    sx={{
-                                        backgroundColor: 'rgb(245, 192, 106)',
-                                        '&:hover': {
-                                            backgroundColor: 'rgb(235, 182, 96)'
-                                        }
-                                    }}
-                                >
-                                    Show Map
-                                </Button>
-                            </Box>
-                        )}
-
-                        {/* Content */}
-                        <Paper 
-                            ref={contentRef}
-                            elevation={2} 
-                            sx={{ p: 4, minHeight: '70vh' }}
-                        >
-                            {renderContent()}
                         </Paper>
                     </Grid>
                 </Grid>
