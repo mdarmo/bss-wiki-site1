@@ -1903,7 +1903,7 @@ const WikiPage = () => {
                                 <ListItemButton onClick={() => handleSectionClick('influence')}>
                                     <CampaignIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
-                                        primary="Influence"
+                                        primary="Influential Players"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
                                     />
                                     {openSections.influence ? <ExpandLess /> : <ExpandMore />}
@@ -1937,7 +1937,7 @@ const WikiPage = () => {
                                 <ListItemButton onClick={() => handleSectionClick('resources')}>
                                     <LinkIcon sx={{ mr: 2, color: '#0D1E20' }} />
                                     <ListItemText 
-                                        primary="Resources"
+                                        primary="Resources & Resistance"
                                         primaryTypographyProps={{ fontSize: '1.035rem' }}
                                     />
                                     {openSections.resources ? <ExpandLess /> : <ExpandMore />}
