@@ -1619,7 +1619,7 @@ const WikiPage = () => {
 
                 <Grid container spacing={3}>
                     {/* Map Section - Shows first on mobile, in right column on desktop */}
-                    <Grid item xs={12} md={8.55} sx={{ order: { xs: 1, md: 2 } }}>
+                    <Grid item xs={12} md={8.55} sx={{ order: { xs: 1, md: 3 } }}>
                         {/* Map Toggle Button */}
                         {showMap ? (
                             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
@@ -1668,11 +1668,15 @@ const WikiPage = () => {
                             </Box>
                         )}
 
-                        {/* Content */}
+                        {/* Content - Hidden on mobile, shown on desktop */}
                         <Paper 
                             ref={contentRef}
                             elevation={2} 
-                            sx={{ p: 4, minHeight: '70vh' }}
+                            sx={{ 
+                                p: 4, 
+                                minHeight: '70vh',
+                                display: { xs: 'none', md: 'block' }
+                            }}
                         >
                             {renderContent()}
                         </Paper>
@@ -1744,12 +1748,11 @@ const WikiPage = () => {
                             ref={menuRef}
                             elevation={2} 
                             sx={{ 
-                                position: 'sticky', 
+                                position: { xs: 'relative', md: 'sticky' },
                                 top: 20, 
-                                maxHeight: '85vh', 
+                                maxHeight: { xs: 'none', md: '85vh' },
                                 overflow: 'auto',
-                                // Align with button when map is shown, align with content when hidden
-                                mt: showMap ? '56px' : 7,
+                                mt: { xs: 0, md: showMap ? '56px' : 7 },
                                 transition: 'margin-top 0.3s ease'
                             }}
                         >
@@ -1952,6 +1955,16 @@ const WikiPage = () => {
                                     </List>
                                 </Collapse>
                             </List>
+                        </Paper>
+                    </Grid>
+
+                    {/* Content Section - Shows third on mobile (below menu), hidden on desktop */}
+                    <Grid item xs={12} sx={{ order: { xs: 3, md: 2 }, display: { xs: 'block', md: 'none' } }}>
+                        <Paper 
+                            elevation={2} 
+                            sx={{ p: 4, minHeight: '70vh' }}
+                        >
+                            {renderContent()}
                         </Paper>
                     </Grid>
                 </Grid>
