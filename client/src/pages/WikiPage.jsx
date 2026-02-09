@@ -36,6 +36,30 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import { toPng } from 'html-to-image';
 import api from '../services/api';
 import Footer from '../components/Footer';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import MapIcon from '@mui/icons-material/Map';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+
+const createCustomIcon = () => {
+    return L.divIcon({
+        className: 'custom-marker',
+        html: `
+            <svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.5 0C5.596 0 0 5.596 0 12.5c0 9.375 12.5 28.5 12.5 28.5S25 21.875 25 12.5C25 5.596 19.404 0 12.5 0z" 
+                      fill="rgba(255, 167, 28, 0.75)" 
+                      stroke="#fff" 
+                      stroke-width="2"/>
+                <circle cx="12.5" cy="12.5" r="5" fill="#fff"/>
+            </svg>
+        `,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+    });
+};
 
 const WikiPage = () => {
     const location = useLocation();
@@ -84,6 +108,10 @@ const WikiPage = () => {
     const contentRef = React.useRef(null);
     const menuRef = React.useRef(null);
     const captureRef = React.useRef(null);
+
+    // Add these new state variables
+    const [showMap, setShowMap] = useState(true);
+    const [mapHeight, setMapHeight] = useState(400);
 
     // Fetch communities
     const fetchCommunities = async () => {
@@ -230,13 +258,9 @@ const WikiPage = () => {
                 setSelectedItem(detailed);
             }
             
-            // Scroll to content on mobile, top on desktop
+            // Scroll to content area (below the map)
             setTimeout(() => {
-                if (window.innerWidth < 900) {
-                    contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    scrollToTop();
-                }
+                contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         } catch (err) {
             console.error('Failed to load details:', err);
@@ -289,12 +313,9 @@ const WikiPage = () => {
                 setSelectedType('politician');
                 setSelectedItem(politician);
                 
+                // Scroll to content area (below the map)
                 setTimeout(() => {
-                    if (window.innerWidth < 900) {
-                        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } else {
-                        scrollToTop();
-                    }
+                    contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
             } else {
                 console.error('Politician not found:', politicianName);
@@ -335,6 +356,74 @@ const WikiPage = () => {
 
     const renderCommunityDetail = (community) => {
         const communityPoliticians = parseJSON(community.major_politicians);
+        
+        // Group politicians by position_level
+        const cityPoliticians = communityPoliticians.filter(pol => pol.position_level === 'City');
+        const statePoliticians = communityPoliticians.filter(pol => pol.position_level === 'State');
+        const nationalPoliticians = communityPoliticians.filter(pol => pol.position_level === 'National');
+        
+        const renderPoliticianSection = (politicians, title) => {
+            if (politicians.length === 0) return null;
+            
+            return (
+                <Grid item xs={12}>
+                    <Paper elevation={1} sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                            {title}
+                        </Typography>
+                        <List>
+                            {politicians.map((pol, index) => (
+                                <ListItem 
+                                    key={`${pol.politician}-${index}`}
+                                    sx={{ 
+                                        borderLeft: `4px solid ${
+                                            pol.party === 'Democratic' ? '#1976d2' : 
+                                            pol.party === 'Republican' ? '#d32f2f' : 
+                                            '#757575'
+                                        }`,
+                                        mb: 1,
+                                        backgroundColor: '#f5f5f5',
+                                        borderRadius: 1
+                                    }}
+                                >
+                                    <ListItemText
+                                        primary={
+                                            <MuiLink
+                                                component="button"
+                                                variant="body1"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    console.log('Clicking politician:', pol.politician);
+                                                    handlePoliticianClickFromCommunity(pol.politician);
+                                                }}
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    fontWeight: 'medium',
+                                                    textDecoration: 'none',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    padding: 0,
+                                                    color: 'primary.main',
+                                                    textAlign: 'left',
+                                                    font: 'inherit',
+                                                    '&:hover': {
+                                                        textDecoration: 'underline'
+                                                    }
+                                                }}
+                                            >
+                                                {pol.politician}
+                                            </MuiLink>
+                                        }
+                                        secondary={pol.party}
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+            );
+        };
         
         return (
             <Box ref={captureRef}>
@@ -421,71 +510,28 @@ const WikiPage = () => {
                         </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
-                        <Paper elevation={1} sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>
-                                Major Politicians
-                            </Typography>
-                            <List>
-                                {communityPoliticians.length > 0 ? (
-                                    communityPoliticians.map((pol, index) => (
-                                        <ListItem 
-                                            key={`${pol.politician}-${index}`}
-                                            sx={{ 
-                                                borderLeft: `4px solid ${
-                                                    pol.party === 'Democratic' ? '#1976d2' : 
-                                                    pol.party === 'Republican' ? '#d32f2f' : 
-                                                    '#757575'
-                                                }`,
-                                                mb: 1,
-                                                backgroundColor: '#f5f5f5',
-                                                borderRadius: 1
-                                            }}
-                                        >
-                                            <ListItemText
-                                                primary={
-                                                    <MuiLink
-                                                        component="button"
-                                                        variant="body1"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            console.log('Clicking politician:', pol.politician);
-                                                            handlePoliticianClickFromCommunity(pol.politician);
-                                                        }}
-                                                        sx={{
-                                                            cursor: 'pointer',
-                                                            fontWeight: 'medium',
-                                                            textDecoration: 'none',
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            padding: 0,
-                                                            color: 'primary.main',
-                                                            textAlign: 'left',
-                                                            font: 'inherit',
-                                                            '&:hover': {
-                                                                textDecoration: 'underline'
-                                                            }
-                                                        }}
-                                                    >
-                                                        {pol.politician}
-                                                    </MuiLink>
-                                                }
-                                                secondary={pol.party}
-                                            />
-                                        </ListItem>
-                                    ))
-                                ) : (
-                                    <ListItem>
-                                        <ListItemText 
-                                            primary="No politician information available" 
-                                            primaryTypographyProps={{ color: 'text.secondary', fontStyle: 'italic' }}
-                                        />
-                                    </ListItem>
-                                )}
-                            </List>
-                        </Paper>
-                    </Grid>
+                    {/* National Politicians */}
+                    {renderPoliticianSection(nationalPoliticians, 'National Representatives')}
+
+                    {/* State Politicians */}
+                    {renderPoliticianSection(statePoliticians, 'State Representatives')}
+
+                    {/* City Politicians */}
+                    {renderPoliticianSection(cityPoliticians, 'City Officials')}
+
+                    {/* Show message if no politicians at all */}
+                    {communityPoliticians.length === 0 && (
+                        <Grid item xs={12}>
+                            <Paper elevation={1} sx={{ p: 2 }}>
+                                <Typography variant="h6" gutterBottom>
+                                    Politicians
+                                </Typography>
+                                <Typography color="text.secondary" fontStyle="italic">
+                                    No politician information available
+                                </Typography>
+                            </Paper>
+                        </Grid>
+                    )}
                 </Grid>
             </Box>
         );
@@ -1349,6 +1395,165 @@ const WikiPage = () => {
         }
     };
 
+    const renderMap = () => {
+        if (!showMap) return null;
+
+        return (
+            <Paper 
+                elevation={3} 
+                sx={{ 
+                    mb: 3,
+                    overflow: 'hidden',
+                    position: 'relative'
+                }}
+            >
+                <Box
+                    sx={{
+                        height: `${mapHeight}px`,
+                        position: 'relative'
+                    }}
+                >
+                    <MapContainer
+                        center={[31.7683, -106.4850]}
+                        zoom={5}
+                        style={{ height: '100%', width: '100%' }}
+                    >
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        
+                        {communities.map((community) => {
+                            const politicians = parseJSON(community.major_politicians);
+                            
+                            return (
+                                <Marker
+                                    key={community.id}
+                                    position={[community.latitude, community.longitude]}
+                                    icon={createCustomIcon()}
+                                >
+                                    <Popup maxWidth={300}>
+                                        <Box sx={{ p: 1 }}>
+                                            <MuiLink
+                                                component="button"
+                                                variant="h6"
+                                                onClick={() => handleItemClick('community', community)}
+                                                sx={{
+                                                    cursor: 'pointer',
+                                                    textDecoration: 'none',
+                                                    fontWeight: 'bold',
+                                                    color: 'primary.main',
+                                                    textAlign: 'left',
+                                                    display: 'block',
+                                                    mb: 1,
+                                                    '&:hover': {
+                                                        textDecoration: 'underline'
+                                                    }
+                                                }}
+                                            >
+                                                {community.name}
+                                            </MuiLink>
+                                            
+                                            <Divider sx={{ my: 1 }} />
+                                            
+                                            <Box sx={{ mb: 1 }}>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    <strong>Population:</strong> {community.population?.toLocaleString()}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    <strong>Distance from Border:</strong> {community.distance_from_border}
+                                                </Typography>
+                                            </Box>
+
+                                            {politicians.length > 0 && (
+                                                <>
+                                                    <Divider sx={{ my: 1 }} />
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                                                        Major Politicians:
+                                                    </Typography>
+                                                    <List dense disablePadding>
+                                                        {politicians.map((pol, index) => (
+                                                            <ListItem key={index} disablePadding sx={{ py: 0.25 }}>
+                                                                <MuiLink
+                                                                    component="button"
+                                                                    variant="body2"
+                                                                    onClick={() => handlePoliticianClickFromCommunity(pol.politician)}
+                                                                    sx={{
+                                                                        cursor: 'pointer',
+                                                                        textDecoration: 'none',
+                                                                        '&:hover': {
+                                                                            textDecoration: 'underline'
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {pol.politician} ({pol.party})
+                                                                </MuiLink>
+                                                            </ListItem>
+                                                        ))}
+                                                    </List>
+                                                </>
+                                            )}
+                                        </Box>
+                                    </Popup>
+                                </Marker>
+                            );
+                        })}
+                    </MapContainer>
+                </Box>
+
+                {/* Resize Handle */}
+                <Box
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        const startY = e.clientY;
+                        const startHeight = mapHeight;
+
+                        const handleMouseMove = (moveEvent) => {
+                            const deltaY = moveEvent.clientY - startY;
+                            const newHeight = Math.max(200, Math.min(800, startHeight + deltaY));
+                            setMapHeight(newHeight);
+                        };
+
+                        const handleMouseUp = () => {
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                        };
+
+                        document.addEventListener('mousemove', handleMouseMove);
+                        document.addEventListener('mouseup', handleMouseUp);
+                    }}
+                    sx={{
+                        height: '8px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                        cursor: 'ns-resize',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                        }
+                    }}
+                >
+                    <Box
+                        sx={{
+                            width: '40px',
+                            height: '4px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                            borderRadius: '2px'
+                        }}
+                    />
+                </Box>
+
+                {/* Map Controls */}
+                <Box sx={{ p: 1, backgroundColor: 'rgba(255, 255, 255, 0.9)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
+                        {communities.length} border communities shown. Drag bottom edge to resize.
+                    </Typography>
+                </Box>
+            </Paper>
+        );
+    };
+
     useEffect(() => {
         if (location.state?.selectedType && location.state?.selectedId) {
             const { selectedType, selectedId } = location.state;
@@ -1389,22 +1594,103 @@ const WikiPage = () => {
             loadEntity();
             
             window.history.replaceState({}, document.title);
+        } else {
+            // Fetch communities on initial page load (not from navigation)
+            if (showMap && communities.length === 0) {
+                fetchCommunities();
+            }
         }
     }, [location.state]);
+
+    // Add useEffect to fetch communities on mount when map is visible
+    useEffect(() => {
+        // Fetch communities on initial load if map is visible
+        if (showMap && communities.length === 0) {
+            fetchCommunities();
+        }
+    }, [showMap]); // Run when showMap changes
 
     return (
         <Box sx={{ backgroundColor: '#f6f7fa', minHeight: '100vh' }}>
             <Box sx={{ px: '5%', py: 4 }}>
-                <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4 }}>
-                    BSI Wiki
+                <Typography variant="h3" gutterBottom align="center" sx={{ mb: 4, fontSize: '2.5rem', fontWeight: 'bold', color: '#0D1E20' }}>
+                    BSS Wiki
                 </Typography>
 
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={3.45}>
+                        {/* Expand/Collapse All Buttons */}
+                        <Box sx={{ mb: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<ExpandMoreIcon />}
+                                onClick={() => {
+                                    setOpenSections({
+                                        communities: true,
+                                        politicians: true,
+                                        corporations: true,
+                                        profiteers: true,
+                                        influence: true,
+                                        resources: true
+                                    });
+                                    // Fetch all data when expanding all
+                                    fetchCommunities();
+                                    fetchPoliticians();
+                                    fetchCompanies();
+                                    fetchPeople();
+                                    fetchInfluencers();
+                                }}
+                                sx={{
+                                    borderColor: 'rgb(245, 192, 106)',
+                                    color: '#0D1E20',
+                                    '&:hover': {
+                                        borderColor: 'rgb(235, 182, 96)',
+                                        backgroundColor: 'rgba(245, 192, 106, 0.1)'
+                                    }
+                                }}
+                            >
+                                Expand All
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<ExpandLessIcon />}
+                                onClick={() => {
+                                    setOpenSections({
+                                        communities: false,
+                                        politicians: false,
+                                        corporations: false,
+                                        profiteers: false,
+                                        influence: false,
+                                        resources: false
+                                    });
+                                }}
+                                sx={{
+                                    borderColor: 'rgb(245, 192, 106)',
+                                    color: '#0D1E20',
+                                    '&:hover': {
+                                        borderColor: 'rgb(235, 182, 96)',
+                                        backgroundColor: 'rgba(245, 192, 106, 0.1)'
+                                    }
+                                }}
+                            >
+                                Collapse All
+                            </Button>
+                        </Box>
+
                         <Paper 
                             ref={menuRef}
                             elevation={2} 
-                            sx={{ position: 'sticky', top: 20, maxHeight: '85vh', overflow: 'auto' }}
+                            sx={{ 
+                                position: 'sticky', 
+                                top: 20, 
+                                maxHeight: '85vh', 
+                                overflow: 'auto',
+                                // Align with button when map is shown, align with content when hidden
+                                mt: showMap ? '56px' : 7,
+                                transition: 'margin-top 0.3s ease'
+                            }}
                         >
                             <List component="nav">
                                 <ListItemButton onClick={() => handleSectionClick('communities')}>
@@ -1609,6 +1895,55 @@ const WikiPage = () => {
                     </Grid>
 
                     <Grid item xs={12} md={8.55}>
+                        {/* Map Toggle Button */}
+                        {showMap ? (
+                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<ExpandLessIcon />}
+                                    onClick={() => setShowMap(false)}
+                                    sx={{
+                                        borderColor: 'rgb(245, 192, 106)',
+                                        color: '#0D1E20',
+                                        '&:hover': {
+                                            borderColor: 'rgb(235, 182, 96)',
+                                            backgroundColor: 'rgba(245, 192, 106, 0.1)'
+                                        }
+                                    }}
+                                >
+                                    Hide Map
+                                </Button>
+                            </Box>
+                        ) : null}
+
+                        {/* Map */}
+                        {renderMap()}
+
+                        {/* Show Map Button (when hidden) - placed above content */}
+                        {!showMap && (
+                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<MapIcon />}
+                                    onClick={async () => {
+                                        if (communities.length === 0) {
+                                            await fetchCommunities();
+                                        }
+                                        setShowMap(true);
+                                    }}
+                                    sx={{
+                                        backgroundColor: 'rgb(245, 192, 106)',
+                                        '&:hover': {
+                                            backgroundColor: 'rgb(235, 182, 96)'
+                                        }
+                                    }}
+                                >
+                                    Show Map
+                                </Button>
+                            </Box>
+                        )}
+
+                        {/* Content */}
                         <Paper 
                             ref={contentRef}
                             elevation={2} 

@@ -10,7 +10,8 @@ const Navbar = () => {
                     component={Link} 
                     to="/"
                     sx={{ 
-                        fontSize: '1.25rem',
+                        fontSize: '2rem',
+                        left: '10%',
                         fontWeight: 'bold',
                         textTransform: 'none',
                         color: '#F5C06A',
@@ -19,14 +20,14 @@ const Navbar = () => {
                         }
                     }}
                 >
-                    BSI Wiki
+                    BSS Wiki
                 </Button>
                 <Box sx={{ mr: '15%' }}>
                     <Button 
                         component={Link} 
                         to="/"
                         sx={{ 
-                            fontSize: '1.3rem',
+                            fontSize: '1.75rem',
                             py: 2,
                             px: 4,
                             color: '#F5C06A',
@@ -41,7 +42,7 @@ const Navbar = () => {
                         component={Link} 
                         to="/wiki"
                         sx={{ 
-                            fontSize: '1.3rem',
+                            fontSize: '1.75rem',
                             py: 2,
                             px: 4,
                             color: '#F5C06A',
@@ -52,7 +53,7 @@ const Navbar = () => {
                     >
                         Wiki
                     </Button>
-                    <Button 
+                    {/* <Button 
                         component={Link} 
                         to="/map"
                         sx={{ 
@@ -66,7 +67,7 @@ const Navbar = () => {
                         }}
                     >
                         Map
-                    </Button>
+                    </Button> */}
                 </Box>
             </Toolbar>
         </AppBar>
