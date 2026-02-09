@@ -106,6 +106,7 @@ const WikiPage = () => {
     ];
 
     const contentRef = React.useRef(null);
+    const mobileContentRef = React.useRef(null);
     const menuRef = React.useRef(null);
     const captureRef = React.useRef(null);
 
@@ -258,9 +259,15 @@ const WikiPage = () => {
                 setSelectedItem(detailed);
             }
             
-            // Scroll to content area (below the map)
+            // Scroll to appropriate content area based on screen size
             setTimeout(() => {
-                contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (window.innerWidth < 900) {
+                    // Mobile: scroll to mobile content section
+                    mobileContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // Desktop: scroll to desktop content section
+                    contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }, 100);
         } catch (err) {
             console.error('Failed to load details:', err);
@@ -1961,6 +1968,7 @@ const WikiPage = () => {
                     {/* Content Section - Shows third on mobile (below menu), hidden on desktop */}
                     <Grid item xs={12} sx={{ order: { xs: 3, md: 2 }, display: { xs: 'block', md: 'none' } }}>
                         <Paper 
+                            ref={mobileContentRef}
                             elevation={2} 
                             sx={{ p: 4, minHeight: '70vh' }}
                         >
