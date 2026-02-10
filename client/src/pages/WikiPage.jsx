@@ -99,10 +99,10 @@ const WikiPage = () => {
     const [loadingPerson, setLoadingPerson] = useState(false);
 
     const resources = [
-        { name: 'The Border Chronicle', url: 'https://www.theborderchronicle.com/' },
-        { name: 'Everywhere Border', url: 'https://www.everywhereborder.org/' },
-        { name: 'Border Profiteers', url: 'https://borderprofiteers.notion.site/' },
-        { name: 'Southern Border', url: 'https://www.southernborder.org/' }
+        // { name: 'The Border Chronicle', url: 'https://www.theborderchronicle.com/' },
+        // { name: 'Everywhere Border', url: 'https://www.everywhereborder.org/' },
+        // { name: 'Border Profiteers', url: 'https://borderprofiteers.notion.site/' },
+        // { name: 'Southern Border', url: 'https://www.southernborder.org/' }
     ];
 
     const contentRef = React.useRef(null);

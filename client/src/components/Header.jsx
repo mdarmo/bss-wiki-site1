@@ -7,7 +7,7 @@ const Header = () => {
         <AppBar position="static" sx={{ backgroundColor: '#1a237e' }}>
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    BSI Wiki - Border Security Initiative
+                    BSS Wiki
                 </Typography>
                 <Box>
                     <Button color="inherit" component={Link} to="/">Home</Button>
