@@ -441,15 +441,6 @@ const WikiPage = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton 
-                            onClick={handleCaptureImage}
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': { color: 'primary.main' }
-                            }}
-                        >
-                            <CameraAltIcon />
-                        </IconButton>
-                        <IconButton 
                             onClick={handleCloseDetails}
                             sx={{ 
                                 color: 'text.secondary',
@@ -601,15 +592,6 @@ const WikiPage = () => {
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton 
-                            onClick={handleCaptureImage}
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': { color: 'primary.main' }
-                            }}
-                        >
-                            <CameraAltIcon />
-                        </IconButton>
-                        <IconButton 
                             onClick={handleCloseDetails}
                             sx={{ 
                                 color: 'text.secondary',
@@ -749,15 +731,6 @@ const WikiPage = () => {
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton 
-                            onClick={handleCaptureImage}
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': { color: 'primary.main' }
-                            }}
-                        >
-                            <CameraAltIcon />
-                        </IconButton>
-                        <IconButton 
                             onClick={handleCloseDetails}
                             sx={{ 
                                 color: 'text.secondary',
@@ -882,15 +855,6 @@ const WikiPage = () => {
                         {person.name}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton 
-                            onClick={handleCaptureImage}
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': { color: 'primary.main' }
-                            }}
-                        >
-                            <CameraAltIcon />
-                        </IconButton>
                         <IconButton 
                             onClick={handleCloseDetails}
                             sx={{ 
@@ -1041,15 +1005,6 @@ const WikiPage = () => {
                         </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton 
-                            onClick={handleCaptureImage}
-                            sx={{ 
-                                color: 'text.secondary',
-                                '&:hover': { color: 'primary.main' }
-                            }}
-                        >
-                            <CameraAltIcon />
-                        </IconButton>
                         <IconButton 
                             onClick={handleCloseDetails}
                             sx={{ 
